@@ -1,0 +1,17 @@
+Package: mastermix
+Type: Package
+Title: Procedure for deconvolving STR DNA mixtures
+Version: 1.0
+Date: 2013-05-02
+Author: Oyvind Bleka <Oyvind.bleka@fhi.no>
+Maintainer: Oyvind Bleka <Oyvind.bleka@fhi.no>
+Description: The procedure sub-optimizes the mixture proportion simultaneous
+    with combined genotypes by assuming the STR response variation as normal
+    distributed.
+License: GPL(>=2)
+Imports:
+    gtools,MASS
+Suggests:
+    gtools,MASS
+Collate:
+    'mastermix.R'
