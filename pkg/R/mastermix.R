@@ -2,6 +2,7 @@
 #Changelog#
 ###########
 #18.04.13 - finish function and descriptions.
+#this is a test
 
 #' @title mastermix
 #' @author Oyvind Bleka <Oyvind.Bleka.at.fhi.no>
