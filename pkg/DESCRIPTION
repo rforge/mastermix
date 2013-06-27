@@ -10,9 +10,9 @@ Description: The procedure sub-optimizes the mixture proportion simultaneous
     distributed.
 License: GPL(>=2)
 Imports:
-    gtools,MASS
+    gtools,MASS,forensim,gWidgetstcltk
 Suggests:
-    gtools,MASS
+    gtools,MASS,forensim,gWidgetstcltk
 Collate:
     'deconvolve.R'
     'mastermixTK.R'

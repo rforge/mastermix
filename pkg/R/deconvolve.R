@@ -155,7 +155,7 @@ deconvolve = function(mixData,nC,method='greedy',model='general',eps=NULL,locsel
  if(is.null(mixData$lociname)) mixData$lociname = names(mixData$adata)
  if(is.null(mixData$lociname)) mixData$lociname = paste("Loci",1:length(mixData$adata),sep="")
 
- if(any(length(grep(tolower(model),'independent')))) model=1
+ if(any(length(grep(tolower(model),'ordinary')))) model=1
  if(any(length(grep(tolower(model),'weighted')))) model=2
  if(any(length(grep(tolower(model),'general')))) model=3
 
@@ -218,7 +218,7 @@ deconvolve = function(mixData,nC,method='greedy',model='general',eps=NULL,locsel
   invWi = list() #inverse is one to precalculate
   Wi=list()
   nA = unlist(lapply(Ylist,length))
-  for(i in 1:nL) {
+  for(i in 1:length(nA)) {
    if(nA[i]==0) next
    if(model==1) Wi[[i]] <- diag(1,nA[i])
    if(model==2) Wi[[i]] <- diag(sum(Ylist[[i]]),nA[i])
