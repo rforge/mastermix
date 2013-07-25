@@ -2,6 +2,7 @@
 #Changelog#
 ###########
 #14.05.13 - Start create GUI for mastermix-function
+#25.07.13 - Fix problem with condOrder argument used with peelOff
 
 #' @title mastermixTK
 #' @author Oyvind Bleka <Oyvind.Bleka.at.fhi.no>
@@ -586,6 +587,7 @@ getLRRMlist = function(LRlist,tippetSel) {
  }
 
  #c) 
+ #prints profiles and EPG or a viewData-table
  f_viewdata = function(h,...) {
    mixSel <- svalue(tab2b[2,1])  #get selected mixtures
    refSel <- svalue(tab2b[2,2])  #get selected references
@@ -594,7 +596,6 @@ getLRRMlist = function(LRlist,tippetSel) {
    for(msel in mixSel) {
      print(mixD[[msel]])
    }
-
    if(h$action=="mix") { #call on epg-function for each mixtures
     for(msel in mixSel) {
      subD <- mixD[[msel]]
@@ -610,7 +611,9 @@ getLRRMlist = function(LRlist,tippetSel) {
     for(rsel in refSel) {
      print(refD[[rsel]])
     }
-    #want to make a table which compares the mix-allele with ref-alleles
+    #want to make a table which compares the mix-allele with ref-alleles:
+    #create frame for references first,
+    refD
    }
  } 
 
@@ -719,11 +722,12 @@ getLRRMlist = function(LRlist,tippetSel) {
 ############################################################
 
  #layout: 
-# tab3a = glayout(spacing=1,container=tab3) #Profile selecter
- tab3b = glayout(spacing=1,container=tab3) #locus Selecter
- tab3c = glayout(spacing=1,container=tab3) #User-input selecter
+  tab3tmp <- glayout(spacing=30,container=tab3)
 
  refreshTab3 = function(mixSel,refSel) {
+   tab3c = glayout(spacing=1,container=(tab3tmp[1,1] <-glayout(spacing=0,container=tab3tmp))) 
+   tab3b = glayout(spacing=1,container=(tab3tmp[1,2] <-glayout(spacing=0,container=tab3tmp))) 
+
   #mixSel,refSel is name of profiles in mixData,refData
   #note: User includes those who are interest to select for conditioning directly!
   #check if already exists:
@@ -767,20 +771,19 @@ getLRRMlist = function(LRlist,tippetSel) {
   tab3c[2,2] <- glabel(text="Models:",container=tab3c)
   tab3c[3,1] <-  gradio(items=c("Simple Search","Greedy Search","Peeloff Search"),container=tab3c,selected=3)
   tab3c[3,2] <-  gradio(items=c("Ordinary","Weighted","Generalized"),container=tab3c,selected=3)
-  tab3c[3,3] <- glabel(text="        ",container=tab3c)
   tab3c[4,1] <- glabel(text="",container=tab3c)
   #options:
   tab3c[5,1] <- glabel(text="#contributors:",container=tab3c)
   tab3c[6,1] <- gedit(text="2",container=tab3c,width=3)
   tab3c[5,2] <- glabel(text="Meth. param:",container=tab3c)
   tab3c[6,2] <- gedit(text="100",container=tab3c,width=3) #startvalue
-  tab3c[5,3] <- glabel(text="Threshold:",container=tab3c)
-  tab3c[6,3] <- gedit(text="50",container=tab3c,width=3)
-  tab3c[5,4] <- glabel(text="Allow zeroMx:",container=tab3c)
-  tab3c[6,4] <- gcheckbox(text="",container=tab3c,checked=FALSE)
+  tab3c[7,1] <- glabel(text="Threshold:",container=tab3c)
+  tab3c[8,1] <- gedit(text="50",container=tab3c,width=3)
+  tab3c[7,2] <- glabel(text="Allow zeroMx:",container=tab3c)
+  tab3c[8,2] <- gcheckbox(text="",container=tab3c,checked=FALSE)
  
-  
-  tab3c[3,4] = gbutton(text="Do deconvolution!",container=tab3c,handler=
+  tab3c[9,1] <- glabel(text="",container=tab3c)  
+  tab3c[10,1] = gbutton(text="Do deconvolution!",container=tab3c,handler=
    function(h,...) { 
     #take out selected data and send them to deconvolution
     mixD2 <- list() #will take data with locnames-order
@@ -831,7 +834,7 @@ getLRRMlist = function(LRlist,tippetSel) {
       lsRef<-locsel_Ref
       condO <- 1:length(refD2)  #conditional order of the checked references
      }
-     deconvlist <- deconvolve(mixData=mixD2[[1]],nC=as.numeric(svalue(tab3c[6,1])),method=substr(svalue(tab3c[3,1]),1,4),model=substr(svalue(tab3c[3,2]),1,4),eps=as.numeric(svalue(tab3c[6,2])),locsel_Mix=locsel_Mix[,1], refData=rData,locsel_Ref=lsRef,condOrder=condO,zeroMx=svalue(tab3c[6,4]),threshT=as.numeric(svalue(tab3c[6,3])))
+     deconvlist <- deconvolve(mixData=mixD2[[1]],nC=as.numeric(svalue(tab3c[6,1])),method=substr(svalue(tab3c[3,1]),1,4),model=substr(svalue(tab3c[3,2]),1,4),eps=as.numeric(svalue(tab3c[6,2])),locsel_Mix=locsel_Mix[,1], refData=rData,locsel_Ref=lsRef,condOrder=condO,zeroMx=svalue(tab3c[8,2]),threshT=as.numeric(svalue(tab3c[8,1])))
 #     print(deconvlist)
      assign("deconvlist",deconvlist,envir=mmTK) #store results from deconv
      #send deconvolved results to next frame
@@ -956,7 +959,7 @@ getLRRMlist = function(LRlist,tippetSel) {
    nM <- length(evidnames)
    for(ln in LRlist$locnames) {
     if(length(grep("AMEL",toupper(ln)))>0) next #skipped anyhow
-    if(verbose) print(paste("calculating LR for loci",ln))
+    print(paste("Calculating LR for loci ",ln,"...",sep=""))
     freq <- popFreq[[grep(toupper(ln), toupper(names(popFreq)))]] #take out frequeny
     if(is.null(freq)) next #no frequencies found for given allele
     freqQ <- freq #default it is all alleles
@@ -984,8 +987,8 @@ getLRRMlist = function(LRlist,tippetSel) {
     nchdnames <- as.numeric()
     for(nr in LRlist$Hp) { #for each reference in Hp
      reflocind <- grep(ln,names(LRlist$refData[[nr]]$adata)) #get loc-index of reference:
-     if(length(reflocind)==0) {
-      warning(paste("Hp: Loci",ln,"was not found in reference ",nr,". You should unselect loci."))
+     if(length(reflocind)==0 || length(LRlist$refData[[nr]]$adata[[ln]])==0) {
+      print(paste("Hp: Loci",ln,"was not found in reference ",nr,". You should unselect loci."))      
      } else {
       refHp <- cbind(refHp , LRlist$refData[[nr]]$adata[[ln]]) #get reference-data
       hpnames <- c(hpnames,nr) 
@@ -1001,8 +1004,8 @@ getLRRMlist = function(LRlist,tippetSel) {
     refHd <- as.numeric()
     for(nr in LRlist$Hd) { #for each reference in Hp
      reflocind <- grep(ln,names(LRlist$refData[[nr]]$adata)) #get loc-index of reference:
-     if(length(reflocind)==0) {
-      warning(paste("Hp: Loci",ln,"was not found in reference ",nr,". You should unselect loci."))
+     if(length(reflocind)==0 || length(LRlist$refData[[nr]]$adata[[ln]])==0) {
+      print(paste("Hd: Loci",ln,"was not found in reference ",nr,". You should unselect loci."))      
      } else {
       refHd <- cbind(refHd , LRlist$refData[[nr]]$adata[[ln]]) #get reference-data
       hdnames <- c(hdnames,nr) 
@@ -1034,7 +1037,9 @@ getLRRMlist = function(LRlist,tippetSel) {
     rownames(numM) <- rownames(denoM) <- rownames(lrM) <- LRlist$DOprob
     for(ddin in 1:nPrC) { #for each dropin
      for(ddout in 1:nPrD) { #for each dropout
-      if(verbose) print(paste( ((ddin-1)*nPrD + ddout - 1) / (nPrD*nPrC)*100, "% complete",sep=""))
+      if(verbose && (ddout%%5==0)) { #print for each 5. calculation
+       print(paste( ((ddin-1)*nPrD + ddout - 1) / (nPrD*nPrC)*100, "% complete",sep=""))
+      }
       PrD <- rep(LRlist$DOprob[ddout],maxC)
       PrC <- rep(LRlist$DIprob[ddin],maxC) 
       numM[ddout,ddin] <- denoM[ddout,ddin] <- lrM[ddout,ddin] <- 1  #default value
@@ -1076,7 +1081,7 @@ getLRRMlist = function(LRlist,tippetSel) {
     xx <- as.numeric(unlist(strsplit(svalue(tab5c[4,2]),"-")))
     prDvec <- seq(xx[1],xx[2],l=as.numeric(svalue(tab5c[5,2])))
     LRlist$DOprob <- prDvec #change drop-out range
-    calcLR(LRlist) #call LR-function
+    calcLR(LRlist,doLR=TRUE,verbose=TRUE) #call LR-function
    }
 
    precalcDO_CI = function(LRlist,tab5c) {
@@ -1158,7 +1163,7 @@ getLRRMlist = function(LRlist,tippetSel) {
    #Locus selecter (same as in deconvolution)
    #'locinames' - assigned as first mixture data
    #Locinames in References are then matched with 'locinames'
-   #user may select loci of mixtures and references (partial profiles)
+   #user may select loci of mixtures 
    tab5b[1,1] <- glabel(text="Loci:",container=tab5b)
    for(nm in 1:nM) {
     tab5b[1,1 + nm] <- glabel(text=mixSel[nm],container=tab5b)
@@ -1171,12 +1176,15 @@ getLRRMlist = function(LRlist,tippetSel) {
      if(length(grep("AMEL",names(subD$adata)[i]))>0) enabled(tab5b[1+locind,1 + nm]) <- FALSE
     }
    }  
-   for(nr in 1:nR) {
-    tab5b[1,1 + nM + nr] <- glabel(text=refSel[nr],container=tab5b)
+   #show referenced (possible partial profiles) profiles
+   for(nr in 1:nR) { #for each reference
+    tab5b[1,1 + nM + nr] <- glabel(text=refSel[nr],container=tab5b) #name of reference
     subD <- refD[[refSel[nr]]] #select profile
-    for(i in 1:length(subD$adata)) {
+    for(i in 1:length(subD$adata)) { #for each marker 
      locind <- grep(names(subD$adata)[i],locnames) #get loc-index of stain:
-     tab5b[1+locind,1 + nM + nr]  <- gcheckbox(text="",container=tab5b,checked=TRUE)
+     check <- TRUE
+     if(length(subD$adata[[i]])==0) check <- FALSE
+     tab5b[1+locind,1 + nM + nr]  <- gcheckbox(text="",container=tab5b,checked=check)
      enabled(tab5b[1+locind,1 + nM + nr]) <- FALSE #they cannot be selected!!
      #note: some data may miss some loci 
     }
@@ -1214,7 +1222,7 @@ getLRRMlist = function(LRlist,tippetSel) {
    tab5d[1,1] = gbutton(text="Do LR calculation!",container=tab5d,handler=
 	function(h,...) {
      #send GUI-objects to get variables in LRlist which is sent to calcLR
-     calcLR(getLRoptions(locnames,mixSel,refSel,tab5a,tab5b))  
+     calcLR(getLRoptions(locnames,mixSel,refSel,tab5a,tab5b),verbose=FALSE)  
      svalue(nb) <- 6 #change notetab
    })
   } #end refresh table 

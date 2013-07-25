@@ -871,7 +871,6 @@ deconvolve = function(mixData,nC,method='greedy',model='general',eps=NULL,locsel
     } else if(b>1) {
      next #only modelfit for bunch 1 
     }
-    cc <- C[[b]] #is a list itself
     nLinB <- length(C[[b]]) #number of loci in bunch
     nCombs <- nrow(C[[b]][[1]]) #same number of rows in each list-element
     Mx <- matrix(NA,ncol=nC,nrow=nCombs)
@@ -882,7 +881,7 @@ deconvolve = function(mixData,nC,method='greedy',model='general',eps=NULL,locsel
      O <- list()
      iW <- list() 
      for(i in 1:nLinB) { #for each loci in Bunch
-      Pi <- matrix(getPtab(cc[[i]][j,]),ncol=nC,nrow=nA[B[[b]][i]])
+      Pi <- matrix(getPtab(C[[b]][[i]][j,]),ncol=nC,nrow=nA[B[[b]][i]])
       Pitilde = as.matrix(Pi[,-nC]) #(n_i X (nC-1)) 
       Pic = as.matrix(Pi[,nC])
       onetilde = as.matrix(rep(1,nC-1))
@@ -924,7 +923,8 @@ deconvolve = function(mixData,nC,method='greedy',model='general',eps=NULL,locsel
       }
      }
     }
-    if(sum(keep)==0) { stop('The input of condOrder gave invalid model fit'); }
+#    if(sum(keep)==0) { stop('The input of condOrder gave invalid model fit'); }
+    if(sum(keep)==0) keep <- rep(TRUE,length(keep)) #keep all comb if all failed
     if(seqcount==1 && sum(keep)>10) { #if first round: keep lowest cluster (in distance)
      keep2 <- cutree(hclust(dist(MD[keep]),method='single'),2)
      keep2 <- keep2==which.min( c(mean(MD[keep][keep2==1]),mean(MD[keep][keep2==2])) ) 
