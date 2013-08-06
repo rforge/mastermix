@@ -23,9 +23,9 @@ mastermixTK = function() {
  mwW <- 1000
 
  #extra functions:
- source( system.file("getKit_05.R",package="mastermix") )
  source( system.file("plotEPG.R",package="mastermix") )
-
+ source( system.file("guroPvalue.R",package="mastermix") )
+ 
  #type of gwidgets-kit
  options(guiToolkit="tcltk")
 
@@ -349,6 +349,30 @@ getLRRMlist = function(LRlist,tippetSel) {
  } #end for each loci
  return(list(LRRM=LRRM,pList=pList,H_p=H_p,geno=geno))
 } 
+
+#Helpfunctions for calculating p-value
+calcPvalue = function(LRRMlist,lrobs) {
+ #LRRMlist - object returned from getLRRMlist
+ #lrobs - observed LR to find p-value of
+ lrlist = LRRMlist$LRRM #get list with LR-calculations
+ K <- length(lrlist) #number of loci
+ M <- max(sapply(lrlist,length)) #max number of RM
+ X <- matrix(0,K,M)
+ P <- matrix(0,K,M)
+ cc = 0 #counter for matrices
+ for(i in 1:K) {
+  if(is.null(lrlist[[i]])) next
+  cc = cc + 1
+  idx <- order(lrlist[[i]],decreasing=TRUE)
+  X[cc,1:length(lrlist[[i]])] <- lrlist[[i]][idx]
+  P[cc,1:length(lrlist[[i]])] <- LRRMlist$pList[[i]][idx]
+ } 
+ X = X[1:cc,]
+ P = P[1:cc,]
+ print("Calculating p-value...")
+ outC <- pvalue.machineC(lrobs,X,P) 
+ return(outC) #return P-value
+}
 
 
 ###################################################################
@@ -1014,7 +1038,7 @@ getLRRMlist = function(LRlist,tippetSel) {
     if(length(hdnames)>0) colnames(refHd) <- hdnames
 
     #frequency-handling:
-    allA <- unique(c(evidA,refHp,refHp))
+    allA <- unique(c(evidA,refHp,refHd)) 
     allA <- allA[allA!=0] #not zeros
     freqN <- names(freq)
     #insert missing allele in 'freq' if some are missing:
@@ -1344,7 +1368,15 @@ getLRRMlist = function(LRlist,tippetSel) {
      assign("LRlist",LRlist,envir=mmTK) #store LRRM-info
      refreshTab6(LRlist,acc=as.numeric(svalue(tab6d[2,2]))) #refresh tab
     })
-   tab6c[2,2] <- gbutton(text="Pval RM",container=tab6c)
+   tab6c[2,2] <- gbutton(text="Pval RM",container=tab6c,handler=
+    function(x) {
+      print(LRlist$joint[1,3]) #observed LR
+      pval <- calcPvalue(LRlist$LRRMlist,LRlist$joint[1,3]) #send random man calculations and observed LR
+      msg <- paste("Calculated pvalue: ",pval,sep="")
+      print(msg)
+      gmessage(message=msg,title="Calculate p-value",icon="info")
+    }
+   )
    tab6c[3,2] <- gedit("1e6",container=tab6c,width=4)
    tab6c[3,1] <- gbutton(text="Tippet plot",container=tab6c,handler=
      function(x) {
@@ -1389,6 +1421,8 @@ getLRRMlist = function(LRlist,tippetSel) {
    } )  
    tab6d[3,2] <- gbutton(text="Save table",container=tab6d,handler=f_savetableLR)  
   }
+
+
 
 
 
