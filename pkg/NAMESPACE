@@ -1,2 +1,3 @@
 export(deconvolve)
 export(mastermixTK)
+useDynLib(mastermix)
