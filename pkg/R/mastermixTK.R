@@ -1,8 +1,10 @@
 ###########
 #Changelog#
 ###########
-#14.05.13 - Start create GUI for mastermix-function
-#25.07.13 - Fix problem with condOrder argument used with peelOff
+#14.05.13 - Start create GUI for mastermix-functions (replaces mixinttool)
+#25.07.13 - Fix problem with condOrder argument used with keepElite
+#20.01.14 - Quant-probability function contProb finished implemented (not inserted into GUI).
+#21.01.14 - Bugs found before deconvolving
 
 #' @title mastermixTK
 #' @author Oyvind Bleka <Oyvind.Bleka.at.fhi.no>
@@ -17,6 +19,7 @@
 
 
 mastermixTK = function() {
+ #setwd("~/Dropbox/Forensic/MixtureProj/myDev/mastermix/R")
  #rm(list=ls()) #must be removed after debugging
  #size of main window
  mwH <- 1000
@@ -154,20 +157,18 @@ mastermixTK = function() {
   sind = grep("sample",tolower(cn)) #sample col-ind
   A_ind = grep("allele",tolower(cn)) #allele col-ind
   H_ind = grep("height",tolower(cn)) #height col-ind
-  ln = unique(X[,lind]) #locus names
+  ln = toupper(unique(X[,lind])) #locus names: Convert to upper case
   sn = unique(X[,sind]) #sample names
   I = length(ln)
   Y = list() #insert non-empty characters:
-  for(k in 1:length(sn)) { #for each sample
+  for(k in 1:length(sn)) { #for each sample in matrix
    Y[[sn[k]]] = list() #one list for each sample
    if(length(A_ind)>0) Y[[sn[k]]]$adata=list()
    if(length(H_ind)>0) Y[[sn[k]]]$hdata=list()
    for(i in 1:I) { #for each locus
      xind = X[,sind]==sn[k] & X[,lind]==ln[i] #get index in X for given sample and locus
      if(length(A_ind)>0) Y[[sn[k]]]$adata[[ln[i]]] = as.character(X[xind,A_ind][!X[xind,A_ind]%in%c("","NA")])
-     if(length(H_ind)>0) {
-      Y[[sn[k]]]$hdata[[ln[i]]] = as.numeric(as.character(X[xind,H_ind][!X[xind,H_ind]%in%c("","NA")]))
-    }
+     if(length(H_ind)>0) Y[[sn[k]]]$hdata[[ln[i]]] = as.numeric(as.character(X[xind,H_ind][!X[xind,H_ind]%in%c("","NA")]))
    }
   }
   return(Y)
@@ -463,7 +464,7 @@ calcPvalue = function(LRRMlist,lrobs) {
    Data <- list()
    Data[[sname]] = list(adata=list(),hdata = list())
    ln = numeric()
-   for(i in 1:(length(get("popFreq",envir=mmTK))+1)) { 
+   for(i in 1:(length(get("popFreq",envir=mmTK))+1)) { #include AMEL in last entry
      ln <- c(ln,svalue(tab1b[i+1,1]))
      Data[[sname]]$adata[[i]] <- strsplit2(svalue(tab1b[i+1,2]),c(" ",",",";",":"))
      Data[[sname]]$hdata[[i]] <- strsplit2(svalue(tab1b[i+1,3]),c(" ",",",";",":"))
@@ -527,6 +528,7 @@ calcPvalue = function(LRRMlist,lrobs) {
       Data[[sname]]$adata[["AMEL"]] <- agg[,1]
       Data[[sname]]$hdata[["AMEL"]] <- agg[,2]
    }
+   print(Data)
    setEntryDataGUI(Data,sname)  
   } #end
 
@@ -578,11 +580,7 @@ calcPvalue = function(LRRMlist,lrobs) {
 ####################################################
 
  #a) button for loading kits from directory:
- f_loadkd = function(h,...) {
-  loadKitList(freqpath=get("freqfolder",envir=mmTK))
-  print(get("kits",envir=mmTK))
-  #update combolist
- }
+ f_loadkd = function(h,...) { loadKitList(freqpath=get("freqfolder",envir=mmTK)); }
 
  #b) load/save profiles
  f_importprof = function(h,...) {
@@ -595,11 +593,11 @@ calcPvalue = function(LRRMlist,lrobs) {
    #get already stored data:
    if(type=="mix") Data2 <- getData("mix") #get data from mmTK-environment
    if(type=="ref") Data2 <- getData("ref") #get data from mmTK-environment
-   if(is.null(Data2)) {
+   if(is.null(Data2)) { #if no previous already there
      Data2 <- Data
    } else {
      for(k in 1:length(Data)) { #for each profile
-      Data2[[names(Data)[k]]] <- Data[[k]]
+      Data2[[names(Data)[k]]] <- Data[[k]] #insert dataframe
      }
    }
    if(type=="mix")  assign("mixData",Data2,envir=mmTK) #assign data to mmTK-environment
@@ -616,28 +614,26 @@ calcPvalue = function(LRRMlist,lrobs) {
    mixSel <- svalue(tab2b[2,1])  #get selected mixtures
    refSel <- svalue(tab2b[2,2])  #get selected references
    kit <- svalue(tab2a[2,1]) #get kit name. Must be same name as in generateEPG
-   mixD <- getData(h$action) #get mixture data
-   for(msel in mixSel) {
-     print(mixD[[msel]])
-   }
+   selD <- getData(h$action) #get mixture data
    if(h$action=="mix") { #call on epg-function for each mixtures
     for(msel in mixSel) {
-     subD <- mixD[[msel]]
+     subD <- selD[[msel]]
+     print("------------------------------------")
+     print(paste("Samplename: ",msel,sep=""))
+     print(subD)
      for(loc in names(subD$adata)) {
-      if(length(grep("AMEL",loc))>0) next
+      #if(length(grep("AMEL",loc))>0) next
       subD$adata[[loc]] <- as.numeric(subD$adata[[loc]])
      }
      plotEPG(subD,kit,msel) #plot epg's
     } 
    }
    if(h$action=="ref") { #call on epg-function for each mixtures
-    refD <- getData(h$action) #get also ref-data
     for(rsel in refSel) {
-     print(refD[[rsel]])
+     print("------------------------------------")
+     print(paste("Samplename: ",rsel,sep=""))
+     print(selD[[rsel]])
     }
-    #want to make a table which compares the mix-allele with ref-alleles:
-    #create frame for references first,
-    refD
    }
  } 
 
@@ -658,16 +654,17 @@ calcPvalue = function(LRRMlist,lrobs) {
   function(h,...) {
    loadKitList(freqpath=get("freqfolder",envir=mmTK))
    kitList <- get("kits",envir=mmTK)
-   print(kitList)
    tab2a[2,1][] <- names(kitList)
   }
  )
+ #kit-selection
  tab2a[2,1] <- gcombobox(items="", width=100, selected = 0, editable = FALSE, container = tab2a, handler=
     function(h,...) {
      kitList <- get("kits",envir=mmTK)
-     tab2a[2,2]['text'] <- names(kitList[[svalue(tab2a[2,1])]])
+     print(names(kitList[[svalue(tab2a[2,1])]]))
+     tab2a[2,2][] <- names(kitList[[svalue(tab2a[2,1])]])
     })
-
+ #population-selection
  tab2a[2,2] <- gcombobox(items="", width=100, selected = 0, editable = FALSE , container = tab2a, handler=
     function(h,...) {
      kitList <- get("kits",envir=mmTK)
@@ -689,7 +686,6 @@ calcPvalue = function(LRRMlist,lrobs) {
  tab2b[3,2] = gbutton(text="View references",container=tab2b,handler=f_viewdata,action="ref")
 
  #Button-choices further:
-
  tab2d[1,1] = gbutton(text="Create profiles",container=tab2d,handler=
   function(h,...) {
    refreshTab1() #refresh table for creating profiles
@@ -752,59 +748,55 @@ calcPvalue = function(LRRMlist,lrobs) {
    tab3c = glayout(spacing=1,container=(tab3tmp[1,1] <-glayout(spacing=0,container=tab3tmp))) 
    tab3b = glayout(spacing=1,container=(tab3tmp[1,2] <-glayout(spacing=0,container=tab3tmp))) 
 
-  #mixSel,refSel is name of profiles in mixData,refData
-  #note: User includes those who are interest to select for conditioning directly!
-  #check if already exists:
-  nM = length(mixSel) #number of mix-profiles
-  nR = length(refSel) #number of ref-profiles
-  mixD = getData("mix")
-  refD = getData("ref") 
-  locnames <- NULL
-  locstart <- 3 #row of locus start - 1
-  tab3b[1,1] <- glabel(text="Profile:",container=tab3b)
-  tab3b[2,1] <- glabel(text="Condition:",container=tab3b)
-  tab3b[3,1] <- glabel(text="",container=tab3b)
-  for(nm in 1:nM) {
+   #mixSel,refSel is name of profiles in mixData,refData
+   #note: User includes those who are interest to select for conditioning directly!
+   #check if already exists:
+   nM = length(mixSel) #number of mix-profiles
+   nR = length(refSel) #number of ref-profiles
+   mixD = getData("mix")
+   refD = getData("ref") 
+   locnames <- NULL
+   locstart <- 3 #row of locus start - 1
+   tab3b[1,1] <- glabel(text="Profile:",container=tab3b)
+   tab3b[2,1] <- glabel(text="Condition:",container=tab3b)
+   tab3b[3,1] <- glabel(text="",container=tab3b)
+   for(nm in 1:nM) { #print loci of each selected mixture
     tab3b[1,1 + nm] <- glabel(text=mixSel[nm],container=tab3b)
     tab3b[2,1 + nm] <- gcheckbox(text="",container=tab3b,checked=TRUE)
     subD <- mixD[[mixSel[nm]]] #select profile
     if(nm==1) locnames <- toupper(names(subD$adata)) #get loc-names
-    for(i in 1:length(subD$adata)) {
+    for(i in 1:length(subD$adata)) { #use loci-name of first 
      locind <- grep(names(subD$adata)[i],locnames) #get loc-index of stain:
+     if(length(locind)==0) next #skip if not found
      if(nm==1) tab3b[locstart+i,1] <- locnames[i] #insert loc-name
      tab3b[locstart+locind,1 + nm]  <- gcheckbox(text="",container=tab3b,checked=TRUE)
-     #note: some data may miss some loci
-    }
-  }
-  if(nR>0) {
-   for(nr in 1:nR) {
-    tab3b[1,1 + nM + nr] <- glabel(text=refSel[nr],container=tab3b)
-    tab3b[2,1 + nM + nr] <- gcheckbox(text="",container=tab3b,checked=FALSE)
-    subD <- refD[[refSel[nr]]] #select profile
-    for(i in 1:length(subD$adata)) {
-     locind <- grep(names(subD$adata)[i],locnames) #get loc-index of stain:
-     tab3b[locstart+locind,1 + nM + nr]  <- gcheckbox(text="",container=tab3b,checked=TRUE)
-     #note: some data may miss some loci 
+     #note: some data may miss some loci. I.e. fine.
     }
    }
-  } #end if refs.
+   if(nR>0) {
+    for(nr in 1:nR) {
+     tab3b[1,1 + nM + nr] <- glabel(text=refSel[nr],container=tab3b)
+     tab3b[2,1 + nM + nr] <- gcheckbox(text="",container=tab3b,checked=FALSE)
+     subD <- refD[[refSel[nr]]] #select profile
+     for(i in 1:length(subD$adata)) {
+      locind <- grep(names(subD$adata)[i],locnames) #get loc-index of stain:
+      if(length(locind)==0) next #skip if not found
+      tab3b[locstart+locind,1 + nM + nr]  <- gcheckbox(text="",container=tab3b,checked=TRUE)
+      #note: some data may miss some loci 
+     }
+    }
+   } #end if refs.
 
   #User input info:
-  tab3c[1,1] <- glabel(text="",container=tab3c)
-  tab3c[2,1] <- glabel(text="Methods:",container=tab3c)
-  tab3c[2,2] <- glabel(text="Models:",container=tab3c)
-  tab3c[3,1] <-  gradio(items=c("Simple Search","Greedy Search","Peeloff Search"),container=tab3c,selected=3)
-  tab3c[3,2] <-  gradio(items=c("Ordinary","Weighted","Generalized"),container=tab3c,selected=3)
-  tab3c[4,1] <- glabel(text="",container=tab3c)
-  #options:
-  tab3c[5,1] <- glabel(text="#contributors:",container=tab3c)
-  tab3c[6,1] <- gedit(text="2",container=tab3c,width=3)
-  tab3c[5,2] <- glabel(text="Meth. param:",container=tab3c)
-  tab3c[6,2] <- gedit(text="100",container=tab3c,width=3) #startvalue
-  tab3c[7,1] <- glabel(text="Threshold:",container=tab3c)
-  tab3c[8,1] <- gedit(text="50",container=tab3c,width=3)
-  tab3c[7,2] <- glabel(text="Allow zeroMx:",container=tab3c)
-  tab3c[8,2] <- gcheckbox(text="",container=tab3c,checked=FALSE)
+  tab3c[1,1] <- glabel(text="Options:",container=tab3c)
+  tab3c[2,1] <- glabel(text="#contributors:",container=tab3c)
+  tab3c[2,2] <- gedit(text="2",container=tab3c,width=3)
+  tab3c[3,1] <- glabel(text="Meth. param:",container=tab3c)
+  tab3c[3,2] <- gedit(text="100",container=tab3c,width=3) #startvalue
+  tab3c[4,1] <- glabel(text="Threshold:",container=tab3c)
+  tab3c[4,2] <- gedit(text="50",container=tab3c,width=3)
+  tab3c[5,1] <- glabel(text="Allow zeroMx:",container=tab3c)
+  tab3c[5,2] <- gcheckbox(text="",container=tab3c,checked=FALSE)
  
   tab3c[9,1] <- glabel(text="",container=tab3c)  
   tab3c[10,1] = gbutton(text="Do deconvolution!",container=tab3c,handler=
@@ -813,7 +805,7 @@ calcPvalue = function(LRRMlist,lrobs) {
     mixD2 <- list() #will take data with locnames-order
     refD2 <- list() #will take data with locnames-order
     locsel_Mix <- numeric()
-    locsel_Ref <- numeric()
+#Should be improved here: Latter stains should search correct loci.
     #1) Insert missing loci into ref-data:
     for(nm in 1:nM) { #for each selected mixes
      if(svalue(tab3b[2,1 + nm])) { #if checked
@@ -826,39 +818,50 @@ calcPvalue = function(LRRMlist,lrobs) {
      } #end if profile checked
     } #end for each mix
     if(length(mixD2)!=1) {
-     tkmessageBox(message="Please select one mix-profile!")
+     tkmessageBox(message="Please select only one mix-profile! Multiple not implemented yet.")
      return
     }
+ #Here we need to convert refData[[s]]$adata[[i]] to refData[[i]][[s]] for further use
     if(nR>0) { #note that some references may have other order of loci: This is taken into account.
-     for(nr in 1:nR) { #for each selected references
-      if(svalue(tab3b[2,1 + nM + nr])) { #if checked
-       tmpA = list() #adata-list
-       locsel = rep(FALSE,length(locnames))
-       for(i in 1:length(locnames)) { #for each needed locus
-         locind <- grep(locnames[i],toupper(names(refD[[refSel[nr]]]$adata))) #get loc-index of prof
-         if(length(locind)==0) tmpA[[locnames[i]]] <- numeric() #assign empty if not found in mix.
-         if(length(locind)==1) { #if locus of reference was found in mixture
-          tmpA[[locnames[i]]] <- refD[[refSel[nr]]]$adata[[locind]] #temp-store in list
-          #only accept locus if valid and checked
-          if(length(tmpA[[locnames[i]]])==2 && svalue(tab3b[locstart+i,1 + nr])) locsel[i] = TRUE
-         }
-       } #end for each locus
-       locsel_Ref = cbind(locsel_Ref , locsel) #add column
-       refD2[[refSel[nr]]] = tmpA #insert list directly
-      } #end if profile checked
-     } #end for each ref
+     locsel_Ref <- matrix(FALSE,nrow=length(locnames),ncol=nR)
+     for(i in 1:length(locnames)) { #for each needed locus
+      refD2[[locnames[i]]] <- list()
+      for(nr in 1:nR) { #for each selected references
+       locind <- grep(locnames[i],toupper(names(refD[[refSel[nr]]]$adata))) #get loc-index of prof
+       locsel <- svalue(tab3b[locstart+locind,1 + nM + nr]) #boolean whether selected 
+       if(length(locind)==0 | !locsel) {
+        refD2[[locnames[i]]][[refSel[nr]]]  <- numeric() 
+       } else {
+         refD2[[locnames[i]]][[refSel[nr]]] <- refD[[refSel[nr]]]$adata[[locind]] #temp-store in list
+         #only accept locus if checked
+         if(svalue(tab3b[2,1 + nM + nr]) && locsel) locsel_Ref[locind,nr] = TRUE
+       }
+      } #end for each ref
+     } #end for each locus     
     } #end if any refs
 
     #Call for Deconvolution: Rename ref-samples first:
+     nCGUI <- as.numeric(svalue(tab3c[2,2])) #number of contributors
      rData <- NULL
      lsRef <- NULL
      condO <- NULL 
-     if(length(refD2)>0) { #if any conditioned references
+     if(any(locsel_Ref)) { #if any conditioned references
       rData<-refD2 
       lsRef<-locsel_Ref
-      condO <- 1:length(refD2)  #conditional order of the checked references
+      condO <- rep(0,nR)  #conditional order of the checked references
+      pos = 1 #counter
+      for(nr in 1:nR) { #for each selected references
+       if(any(locsel_Ref[,nr])) {
+        if(pos>nCGUI) tkmessageBox(message="Number of references exceeds number of contributors.")
+        condO[nr] = pos #insert position
+		pos = pos + 1
+       }
+      }
+      print(locsel_Ref)
+      print(rData)
      }
-     deconvlist <- deconvolve(mixData=mixD2[[1]],nC=as.numeric(svalue(tab3c[6,1])),method=substr(svalue(tab3c[3,1]),1,4),model=substr(svalue(tab3c[3,2]),1,4),eps=as.numeric(svalue(tab3c[6,2])),locsel_Mix=locsel_Mix[,1], refData=rData,locsel_Ref=lsRef,condOrder=condO,zeroMx=svalue(tab3c[8,2]),threshT=as.numeric(svalue(tab3c[8,1])))
+#only supports one stain!
+      deconvlist <- deconvolve(mixData=mixD2[[1]],nC=nCGUI,eps=as.numeric(svalue(tab3c[3,2])),locsel_Mix=locsel_Mix[,1],refData=rData,locsel_Ref=lsRef,condOrder=condO,zeroMx=svalue(tab3c[5,2]),threshT=as.numeric(svalue(tab3c[4,2])),verbose=TRUE)
 #     print(deconvlist)
      assign("deconvlist",deconvlist,envir=mmTK) #store results from deconv
      #send deconvolved results to next frame
@@ -866,6 +869,9 @@ calcPvalue = function(LRRMlist,lrobs) {
      svalue(nb) <- 4 #change notetab
    } #end handle function
   ) #end button
+  tab3c[11,1] = glabel(text="",container=tab3c)  
+  tab3c[12,1] = gbutton(text="Do quant LR calc!",container=tab3c)
+  enabled(tab3c[12,1]) <- FALSE
  } #end refreshTab3
 
 ##############################################################
@@ -1051,8 +1057,11 @@ calcPvalue = function(LRRMlist,lrobs) {
     }
     freqQ  <- freq #default is all frequencies
     #if Q-assignated: 
-    if(LRlist$Qcalc)  freqQ <- freq[freq%in%allA] #truncate alleles
-
+    if(LRlist$Qcalc) {
+      freqQ <- freq[freqN%in%allA] #truncate alleles
+      freqQ <- c(freqQ,1-sum(freqQ))
+      names(freqQ)[length(freqQ)] = "99"
+    }
     #start calculate LR:
     nPrD <- length(LRlist$DOprob)
     nPrC <- length(LRlist$DIprob)
@@ -1073,7 +1082,7 @@ calcPvalue = function(LRRMlist,lrobs) {
        denoM[ddout,ddin] <- lrobj$deno
        lrM[ddout,ddin] <- lrobj$LR
       }
-      #store to LRfit-object:
+      #store to LRfit-object: Loci-results given
       LRfit[[ln]] <- list(hp=numM,hd=denoM,LR=lrM,evidList=evidList,evid=evidA,refHp=refHp,refHd=refHd,nonContHd=nonContHd,freqQ=freqQ)
      } #end for each dropin
     } #end for each dropout

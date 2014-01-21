@@ -1,3 +1,5 @@
 export(deconvolve)
+export(genDataset)
+export(getContrCombs)
 export(mastermixTK)
 useDynLib(mastermix)
