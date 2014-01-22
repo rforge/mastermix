@@ -1,12 +1,12 @@
-//This function permutates and fits a lin. gauss. model (Tvedebrink 2011).
 //cd ~/Dropbox/Forensic/MixtureProj/myDev/mastermix/R
 //R CMD SHLIB contProbCpp.cpp -llapack -lblas
 #include <cmath> //math expressions
 #include <vector> //list-structure for loci
-#include <armadillo> //
+#include <RcppArmadillo.h> //require RcppArmadillopackage and Namespaced defined
+//#include <armadillo>//
 using namespace std;
 using namespace arma;
-const double PI = std::acos(0.0)*2;
+const double PIVAL = std::acos(0.0)*2;
 //#define DEBUG
 //helpfunctions:
 void cumsum(int* x, int *sz, int *y);
@@ -195,7 +195,7 @@ class MasterMix0 {
      ginvXtWX = pinv(sumXtWX); //generalized inverse
      mhat = ginvXtWX*sumXtWY;
      MD = sumYtWY - 2*trans(sumXtWY)*mhat + trans(mhat)*sumXtWX*mhat; //MAHALONOBIS DISTANCE
-     tmpLA = 1/sqrt(pow(2*PI*MD/n,n))*exp(-0.5*n)*prodPG;
+     tmpLA = 1/sqrt(pow(2*PIVAL*MD/n,n))*exp(-0.5*n)*prodPG;
      LAsum = LAsum + tmpLA;
     } else {
      recfit(i+1);
@@ -256,7 +256,7 @@ class MasterMix0 {
       ginvXtWX = pinv(sumXtWX); //generalized inverse
       mhat = ginvXtWX*sumXtWY;
       MD = sumYtWY - 2*trans(sumXtWY)*mhat + trans(mhat)*sumXtWX*mhat; //MAHALONOBIS DISTANCE
-      tmpLA = 1/sqrt(pow(2*PI*MD/n,n))*exp(-0.5*n)*prodPG;
+      tmpLA = 1/sqrt(pow(2*PIVAL*MD/n,n))*exp(-0.5*n)*prodPG;
       LAsum = LAsum + (rowrange(1,i)-rowrange(0,i)+1)*tmpLA/M;
      } else {
       recfitX(i+1);
@@ -286,10 +286,10 @@ void cumsum(int* x, int *sz, int *y) {
 }
 
 
+//SEXP doAnalysisC(double *LA,int *nA, int *nC, int *nL, double *Y, double *iW, int *nCombs, double *Plist, double *pGvec,uword *simX,int *M) {
+
 extern "C" {
-
-
-void doAnalysisC(double *LA,int *nA, int *nC, int *nL, double *Y, double *iW, int *nCombs, double *Plist, double *pGvec,uword *simX,int *M) {
+ void doAnalysisC(double *LA,int *nA, int *nC, int *nL, double *Y, double *iW, int *nCombs, double *Plist, double *pGvec,uword *simX,int *M) {
  //simX is 0 if not importance sample are applied. M is number of samples in simX
  int i,j,nA2;
  int *CnA = new int[*nL+1]; //cumulative index for vector

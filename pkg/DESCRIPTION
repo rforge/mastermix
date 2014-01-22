@@ -9,6 +9,8 @@ Description: The procedure sub-optimizes the mixture proportion simultaneous
     with combined genotypes by assuming the STR response variation as normal
     distributed.
 License: GPL(>=2)
+Depends: Rcpp (>= 0.10.6), RcppArmadillo (>= 0.4.000)
+LinkingTo: Rcpp, RcppArmadillo
 Imports:
     gtools,MASS,forensim,gWidgetstcltk
 Suggests:
