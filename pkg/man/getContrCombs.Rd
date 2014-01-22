@@ -14,7 +14,7 @@
 
   \item{refs}{List of contributors [[s]] where list-element
   's' is the reference index with genotype vector
-  ("A1","A2"). #'}
+  ("A1","A2"). '}
 
   \item{condOrder}{Specify conditioning references in refs
   (must be consistent order). For instance
