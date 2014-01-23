@@ -173,11 +173,55 @@ contProb = function(nC,mixData,popFreq,refData=NULL,condOrder=NULL,M=NULL,thresh
 ##########END HELPFUNCTIONS############
 
 ##########Start function here:############
+  #Insert missing allele into response data:
+  #taken from deconvolve()
+   locinames <- names(popFreq)
+   nL <- length(locinames)
+
+   if (!is.null(condOrder)) {
+    for (i in 1:nL) {
+      for (k in 1:length(condOrder)) {
+        if (condOrder[k] == 0 | length(refData[[i]][[k]]) == 0)   next
+          aref = refData[[i]][[k]]
+          anew = aref[!aref %in% mixData$adata[[i]]]
+          if (length(anew) > 0) {
+           mixData$adata[[i]] = c(mixData$adata[[i]],anew)
+           mixData$hdata[[i]] = c(mixData$hdata[[i]],rep(threshT, length(anew)))
+           print(paste("WARNING: At locus ",locinames[i],", the allele(s) ", paste(anew, collapse = "/", sep = ""), " was added  with threshold height ", threshT, sep = ""))
+          }
+        }
+     }
+  }
+ nA = unlist(lapply(mixData$adata,length)) #number of alleles of selected loci
+ #need to check if number of unique reference samples extends the model
+ if(!is.null(refData) && !is.null(condOrder)) {
+  nR = sum(condOrder>0)
+  for(i in 1:nL) {
+   refA = numeric()
+   for(k in 1:length(condOrder)) {
+    if(condOrder[k]==0) next
+    refA = c(refA, refData[[i]][[k]] )
+   }
+   #get number of references on locus i:
+   refA = unique(refA) #unique refererence alleles (uncselected are not counted)
+   Ai = mixData$adata[[i]]
+   leftA = Ai[!Ai%in%refA] #undescribed alleles for unknown
+   if(length(leftA)>2*(nC-nR)) { 
+    msg <- paste('For locus ',locinames[i],', number of unique allele left (after restriction) is ',length(leftA), ', while number of unknowns are ',nC-nR,'. Specify more unknowns or change reference conditioning.',sep='')
+    stop(msg)
+   }
+  }
+ }
+ if(max(nA)>(2*nC)) {
+    msg <- paste('Max alleles in a locus is ',max(nA),'. You must specify a greater number of contributors',sep='')
+    stop(msg)
+ }
+
+#END taken from deconvolve()
   Qlist <-  getQlist(mixData,refData,condOrder)
   Glist <- getGlist(popFreq)
   nAi <- sapply(mixData$adata,length)
   N <- sum(nAi)
-  nL <- length(Glist)
   invWi = getCovmod(mixData$hdata,OLS=FALSE)$invWi #used constant always
   Yvec <- unlist(mixData$hdata)
   sY = sapply(mixData$hdata,sum)

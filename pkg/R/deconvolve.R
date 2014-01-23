@@ -5,6 +5,7 @@
 #09.10.13 -in helpfunction getPtab() g2 = as.numeric(unlist(strsplit(Q,''))) replaced with g2 = unlist(strsplit(Q,'')). 
 #11.10.13 - bug: refData2[[k]]$adata[[k]][[i]] now given as refData2[[i]][[k]] 
 #08.01.14 - We remove the "greedy"-method, uses OLS model for ind. loci-search and GLS for simultanously fit.
+#23.01.14 - Changed from lociname to locinames
 
 #' @title deconvolve
 #' @author Oyvind Bleka <Oyvind.Bleka.at.fhi.no>
@@ -33,11 +34,11 @@
 #' @return Optimized deconvolution model object.
 #' \item{simpleList}{Table of loci independent optimizations}
 #' \item{pList}{Resultlist of optimized combinations, mixture proportions and error-distances (MD).}
-#' \item{res1}{Tabled optimized results in format 1.}
-#' \item{res2}{Tabled optimized results in format 2.}
+#' \item{locinames}{Name of loci in mixData}
+#' \item{result1}{Tabled optimized results in format 1.}
+#' \item{result2}{Tabled optimized results in format 2.}
 #' \item{data}{All data used as input in analysis.}
 #' \item{options}{Input parameters used in analysis.}
-#' \item{locinames}{Names of loci used in analysis (same as mixData$locinames if specified).}
 #' @references Tvedebrink,T, et.al.(2012). Identifying contributors of DNA mixtures by means of quantitative information of STR typing. Journal of Computational Biology, 19(7),887-902.
 #' @keywords deconvolution, optimization
 
@@ -61,8 +62,8 @@ deconvolve = function(mixData,nC,eps=NULL,locsel_Mix=NULL,refData=NULL,locsel_Re
  if(!is.null(locsel_Mix) && length(mixData$adata)!=length(locsel_Mix)) { print('Wrong data format in locsel_Mix'); return(NULL) }
 
  #insert lociname if not already given
- if(is.null(mixData$lociname)) mixData$lociname = names(mixData$adata)
- if(is.null(mixData$lociname)) mixData$lociname = paste("Loci",1:length(mixData$adata),sep="")
+ locinames = names(mixData$adata)
+ if(is.null(lociname)) locinames = paste("Loci",1:length(locinames ),sep="")
 
  #Order-size too large
  if(!is.null(condOrder)) {
@@ -90,7 +91,7 @@ deconvolve = function(mixData,nC,eps=NULL,locsel_Mix=NULL,refData=NULL,locsel_Re
     if(length(anew)>0) { 
      mixData2$adata[[i]] = c(mixData2$adata[[i]],anew) #add new alleles
      mixData2$hdata[[i]] = c(mixData2$hdata[[i]],rep(threshT,length(anew))) #add new alleles
-     print(paste('WARNING: At locus ',mixData2$lociname[i],', the allele(s) ',paste(anew,collapse="/",sep=""),' was added  with threshold height ',threshT,sep=''))
+     print(paste('WARNING: At locus ',locinames[i],', the allele(s) ',paste(anew,collapse="/",sep=""),' was added  with threshold height ',threshT,sep=''))
     }
    }
   }
@@ -404,7 +405,8 @@ deconvolve = function(mixData,nC,eps=NULL,locsel_Mix=NULL,refData=NULL,locsel_Re
   cc = 0 #counter of number of loci
   Alist = list() #listed allele info
   Ylist = list() #listed height info
-  for(i in 1:length(mixData2$lociname) ) { #for each loci
+  locinames <- names(mixData2$adata)
+  for(i in 1:length(locinames) ) { #for each loci
    cc = cc + 1
    Alist[[cc]] = mixData2$adata[[i]]
    Ylist[[cc]] = mixData2$hdata[[i]]
@@ -631,7 +633,7 @@ deconvolve = function(mixData,nC,eps=NULL,locsel_Mix=NULL,refData=NULL,locsel_Re
    leftA = Ai[!Ai%in%refA] #undescribed alleles for unknown
 
    if(length(leftA)>2*(nC-nR)) { 
-    msg <- paste('For locus ',mixData2$lociname[i],', number of unique allele left (after restriction) is ',length(leftA), ', while number of unknowns are ',nC-nR,'. Specify more unknowns or change reference conditioning.',sep='')
+    msg <- paste('For locus ',locinames[i],', number of unique allele left (after restriction) is ',length(leftA), ', while number of unknowns are ',nC-nR,'. Specify more unknowns or change reference conditioning.',sep='')
     stop(msg)
    }
   }
@@ -663,7 +665,7 @@ deconvolve = function(mixData,nC,eps=NULL,locsel_Mix=NULL,refData=NULL,locsel_Re
     combs[j,i] <- paste(gencomb,collapse=',')
    }
   }
-  ln <- deconvlist$lociname
+  ln <- deconvlist$locinames
   mxs <- rep("",nJ)
   for(j in 1:nJ) {
    mxs[j] <-  paste(round(deconvlist$pList$Mx[j,],3),collapse=",",sep="")
@@ -693,7 +695,7 @@ deconvolve = function(mixData,nC,eps=NULL,locsel_Mix=NULL,refData=NULL,locsel_Re
     combs <- rbind(combs,gencomb)
    }
   }
-  ln <- deconvlist$lociname
+  ln <- deconvlist$locinames
   rownames(combs) <- paste('#',c(t(replicate(nC,1:nJ))),':C',1:nC,sep='')
   ln[nchar(ln)==1] <- paste('0',ln[nchar(ln)==1],sep='')
   colnames(combs) <- c(ln,'Mx','MD') #paste(c(t(replicate(2,ln))),c('_1','_2'),sep='')
@@ -701,7 +703,7 @@ deconvolve = function(mixData,nC,eps=NULL,locsel_Mix=NULL,refData=NULL,locsel_Re
  }
 
  #add extra result info:
- deconvlist$locinames <- mixData2$lociname #store locinames
+ deconvlist$locinames <- names(mixData2) #store locinames
  deconvlist$result1 = getCombs(deconvlist)
  deconvlist$result2 = getCombs2(deconvlist)
  deconvlist$data <- list(mixData=mixData2,refData=refData2,locsel_Mix=locsel_Mix,locsel_Ref=locsel_Ref)
