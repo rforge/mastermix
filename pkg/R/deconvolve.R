@@ -33,7 +33,7 @@
 #' @param threshT Imputet quantitative value when conditioned reference alleles are non-observed.
 #' @param verbose Boolean for whether in-process information should be printed
 #' @return Optimized deconvolution model object.
-#' \item{simpleList}{Table of loci independent optimizations}
+#' \item{simpleList}{Table of loci independent optimizations. Uses independent covariance structure.}
 #' \item{pList}{Resultlist of optimized combinations, mixture proportions and error-distances (MD).}
 #' \item{locinames}{Name of loci in mixData}
 #' \item{result1}{Tabled optimized results in format 1.}
@@ -335,7 +335,7 @@ deconvolve = function(nC,mixData,refData=NULL,condOrder=NULL,locsel_Mix=NULL,loc
     next
    }
    #Method 1: each refs will be connected to a combination
-   contr_combs <- getContrCombs(Alist[[i]],nC,symmetry=FALSE,refData2[[i]],condOrder) #no symmetry!
+   contr_combs <- getContrCombs(Alist=Alist[[i]],nC=nC,symmetry=FALSE,refs=refData2[[i]],condOrder=condOrder) #no symmetry!
 
    #Note: Aim is to assign some probaility of this set 
    #list-element of Mx-proposed and Residual sum squares

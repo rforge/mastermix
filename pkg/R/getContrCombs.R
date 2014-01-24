@@ -74,7 +74,9 @@ getContrCombs <- function(Alist,nC,symmetry=FALSE,refs=NULL,condOrder=NULL,compl
    ncond[k] = TRUE #the conditional reference was accepted to use!
   }
  }
- multiCombs = getPerm(genSet,nC-sum(ncond),ordered=symmetry) #get unknown CC
+ nUnk <- nC-sum(ncond) #number of unknowns
+ if(nUnk==0) multiCombs <- getPerm(condCC[ncond],nC,ordered=symmetry)
+ if(nUnk>0) multiCombs = getPerm(genSet,nUnk,ordered=symmetry) #get unknown CC
  if(is.null(dim(multiCombs)))  return(t(as.matrix(multiCombs))) #return one combination
  #combine unknown CC with reference CC:
  #reference CC are ordered as in condOrder.
@@ -85,7 +87,7 @@ getContrCombs <- function(Alist,nC,symmetry=FALSE,refs=NULL,condOrder=NULL,compl
    finalcombs[,condOrder[k]] = condCC[k] #or else insert conditional profile
   }
   finalcombs[,-condOrder[ncond]] = multiCombs #set in the randoms for those not condidtioned on
-  multiCombs = finalcombs
+  multiCombs = unique(finalcombs) #NEW:added unique here
  }
  if(complete) multiCombs = removeCombsNotInA(multiCombs,Ai)
  if(is.null(dim(multiCombs)))  return(t(as.matrix(multiCombs)))
