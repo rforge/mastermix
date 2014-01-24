@@ -2,39 +2,39 @@
 \alias{deconvolve}
 \title{deconvolve}
 \usage{
-  deconvolve(mixData, nC, eps = NULL, locsel_Mix = NULL,
-    refData = NULL, locsel_Ref = NULL, condOrder = NULL,
-    zeroMx = FALSE, threshT = 50,verbose=FALSE)
+  deconvolve(nC, mixData, refData = NULL, condOrder = NULL,
+    locsel_Mix = NULL, locsel_Ref = NULL, eps = 100,
+    zeroMx = FALSE, threshT = 50, verbose = FALSE)
 }
 \arguments{
+  \item{nC}{Number of contributors in model.}
+
   \item{mixData}{Evidence object with list elements
   adata[[i]] and hdata[[i]]. Each element has a loci-list
   with list-element 'i' storing qualitative data in 'adata'
   and quantitative data in 'hdata'.}
-
-  \item{nC}{Number of contributors in model.}
-
-  \item{eps}{Number of best combinations to keep during the
-  search.}
-
-  \item{locsel_Mix}{Boolean-vector with Selected loci in
-  mixData to deconvolve. locsel_Mix=NULL; accepts all
-  loci.}
 
   \item{refData}{Reference objects with list element
   [[i]][[s]] where list-element 's' is the reference index
   and the list-element 'i is the loci index where the
   qualitative data is stored as a length two vector.}
 
-  \item{locsel_Ref}{Boolean-matrix for specifying
-  conditional loci (row) for each reference
-  (column).locsel_Ref=NULL; accepts all loci.}
-
   \item{condOrder}{Specify conditioning references from
   refData (must be consistent order). For instance
   condOrder=(0,2,1,0) means that we restrict the model such
   that Ref2 and Ref3 are respectively conditioned as 2.
   contributor and 1. contributor in the model.}
+
+  \item{locsel_Mix}{Boolean-vector with Selected loci in
+  mixData to deconvolve. locsel_Mix=NULL; accepts all
+  loci.}
+
+  \item{locsel_Ref}{Boolean-matrix for specifying
+  conditional loci (row) for each reference
+  (column).locsel_Ref=NULL; accepts all loci.}
+
+  \item{eps}{Number of best combinations to keep during the
+  search.}
 
   \item{zeroMx}{boolean of allowing zero mixture proportion
   as an estimate for any contributors.}
@@ -50,12 +50,11 @@
   \item{simpleList}{Table of loci independent
   optimizations} \item{pList}{Resultlist of optimized
   combinations, mixture proportions and error-distances
-  (MD).} \item{res1}{Tabled optimized results in format 1.}
-  \item{res2}{Tabled optimized results in format 2.}
+  (MD).} \item{locinames}{Name of loci in mixData}
+  \item{result1}{Tabled optimized results in format 1.}
+  \item{result2}{Tabled optimized results in format 2.}
   \item{data}{All data used as input in analysis.}
   \item{options}{Input parameters used in analysis.}
-  \item{locinames}{Names of loci used in analysis (same as
-  mixData$locinames if specified).}
 }
 \description{
   deconvolve is a linear deconvolution procedure for STR

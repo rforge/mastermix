@@ -6,12 +6,13 @@
 #11.10.13 - bug: refData2[[k]]$adata[[k]][[i]] now given as refData2[[i]][[k]] 
 #08.01.14 - We remove the "greedy"-method, uses OLS model for ind. loci-search and GLS for simultanously fit.
 #23.01.14 - Changed from lociname to locinames
+#24.01.14 - Changed order of input
+
 
 #' @title deconvolve
 #' @author Oyvind Bleka <Oyvind.Bleka.at.fhi.no>
 #' @description deconvolve is a linear deconvolution procedure for STR DNA mixtures.
 #' @export
-#' @usage deconvolve(mixData, nC, eps = NULL, locsel_Mix = NULL, refData = NULL, locsel_Ref = NULL, condOrder = NULL, zeroMx = FALSE, threshT = 50,verbose=FALSE)
 #' @details The procedure optimizes the mixture proportion simultaneous with combined genotypes by assuming the STR response variation as normal distributed. The criterion for optimization is the error distance Mahalanobis Distance (MD) between the fitting model and observed responses.
 #' 
 #' Conditioning on referenced genotypes is possible. Selection of conditioned loci for each of the references may be specified. Unobserved alleles from references will be imputed as observed alleles with the input threshold as the quantitative information. Non-selected or empty observed loci will return NA as genotype combinations and not treated in model.
@@ -21,13 +22,13 @@
 #' The covariance structures taking all loci into account assumes a compound symmetry structure which takes the number of alleles and peak heights into account (this ensures 'proportion of variance').
 #' 
 #' The user may choose whether combinations giving zero mixture propotion (gives overfitting model) for any contributors are accepted.
-#' @param mixData Evidence object with list elements adata[[i]] and hdata[[i]]. Each element has a loci-list with list-element 'i' storing qualitative data in 'adata' and quantitative data in 'hdata'.
 #' @param nC Number of contributors in model.
-#' @param eps Number of best combinations to keep during the search.
-#' @param locsel_Mix Boolean-vector with Selected loci in mixData to deconvolve. locsel_Mix=NULL; accepts all loci.
+#' @param mixData Evidence object with list elements adata[[i]] and hdata[[i]]. Each element has a loci-list with list-element 'i' storing qualitative data in 'adata' and quantitative data in 'hdata'.
 #' @param refData Reference objects with list element [[i]][[s]] where list-element 's' is the reference index and the list-element 'i is the loci index where the qualitative data is stored as a length two vector.
-#' @param locsel_Ref Boolean-matrix for specifying conditional loci (row) for each reference (column).locsel_Ref=NULL; accepts all loci.
 #' @param condOrder Specify conditioning references from refData (must be consistent order). For instance condOrder=(0,2,1,0) means that we restrict the model such that Ref2 and Ref3 are respectively conditioned as 2. contributor and 1. contributor in the model.
+#' @param locsel_Mix Boolean-vector with Selected loci in mixData to deconvolve. locsel_Mix=NULL; accepts all loci.
+#' @param locsel_Ref Boolean-matrix for specifying conditional loci (row) for each reference (column).locsel_Ref=NULL; accepts all loci.
+#' @param eps Number of best combinations to keep during the search.
 #' @param zeroMx boolean of allowing zero mixture proportion as an estimate for any contributors.
 #' @param threshT Imputet quantitative value when conditioned reference alleles are non-observed.
 #' @param verbose Boolean for whether in-process information should be printed
@@ -42,7 +43,7 @@
 #' @references Tvedebrink,T, et.al.(2012). Identifying contributors of DNA mixtures by means of quantitative information of STR typing. Journal of Computational Biology, 19(7),887-902.
 #' @keywords deconvolution, optimization
 
-deconvolve = function(mixData,nC,eps=NULL,locsel_Mix=NULL,refData=NULL,locsel_Ref=NULL,condOrder=NULL,zeroMx=FALSE,threshT=50,verbose=FALSE) {
+deconvolve = function(nC,mixData,refData=NULL,condOrder=NULL,locsel_Mix=NULL,locsel_Ref=NULL,eps=100,zeroMx=FALSE,threshT=50,verbose=FALSE) {
  require(MASS)
  require(gtools)
  #ERROR HANDLE:
@@ -63,11 +64,12 @@ deconvolve = function(mixData,nC,eps=NULL,locsel_Mix=NULL,refData=NULL,locsel_Re
 
  #insert lociname if not already given
  locinames = names(mixData$adata)
- if(is.null(lociname)) locinames = paste("Loci",1:length(locinames ),sep="")
+ if(is.null(locinames)) locinames = paste("Loci",1:length(mixData$adata),sep="")
 
  #Order-size too large
  if(!is.null(condOrder)) {
     msg = NULL
+    if(is.null(refData)) msg <- paste('refData is missing')
     if(sum(condOrder>0)>nC) msg <- paste('You specified too many references',sep='')
     if(any(condOrder > nC)) msg <- paste('You specified too large number of condition-order',sep='')
     if(any(table(condOrder[condOrder>0])>1) ) msg <- paste('You specified atleast two references with same condition order.',sep='')
@@ -703,7 +705,7 @@ deconvolve = function(mixData,nC,eps=NULL,locsel_Mix=NULL,refData=NULL,locsel_Re
  }
 
  #add extra result info:
- deconvlist$locinames <- names(mixData2) #store locinames
+ deconvlist$locinames <- names(mixData2$adata) #store locinames
  deconvlist$result1 = getCombs(deconvlist)
  deconvlist$result2 = getCombs2(deconvlist)
  deconvlist$data <- list(mixData=mixData2,refData=refData2,locsel_Mix=locsel_Mix,locsel_Ref=locsel_Ref)

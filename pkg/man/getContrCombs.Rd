@@ -2,7 +2,8 @@
 \alias{getContrCombs}
 \title{getContrCombs}
 \usage{
-  getContrCombs(Alist,nC,symmetry=FALSE,refs=NULL,condOrder=NULL,complete=TRUE)
+  getContrCombs(Alist, nC, symmetry = FALSE, refs = NULL,
+    condOrder = NULL, complete = TRUE)
 }
 \arguments{
   \item{Alist}{Vector of possible alleles}
@@ -14,7 +15,7 @@
 
   \item{refs}{List of contributors [[s]] where list-element
   's' is the reference index with genotype vector
-  ("A1","A2"). '}
+  ("A1","A2"). #'}
 
   \item{condOrder}{Specify conditioning references in refs
   (must be consistent order). For instance

@@ -3,7 +3,8 @@
 \title{contProb}
 \usage{
   contProb(nC, mixData, popFreq, refData = NULL,
-    condOrder = NULL, M = NULL, threshT = 50)
+    condOrder = NULL, locsel_Mix = NULL, locsel_Ref = NULL,
+    M = NULL, threshT = 50)
 }
 \arguments{
   \item{nC}{Number of assumed contributors in model.}
@@ -26,6 +27,14 @@
   condOrder=(0,2,1,0) means that we restrict the model such
   that Ref2 and Ref3 are respectively conditioned as 2.
   contributor and 1. contributor in the model.}
+
+  \item{locsel_Mix}{Boolean-vector with Selected loci in
+  mixData to deconvolve. locsel_Mix=NULL; accepts all
+  loci.}
+
+  \item{locsel_Ref}{Boolean-matrix for specifying
+  conditional loci (row) for each reference
+  (column).locsel_Ref=NULL; accepts all loci.}
 
   \item{M}{Number of samples used in the importance
   sampling.}

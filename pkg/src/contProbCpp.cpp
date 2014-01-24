@@ -285,9 +285,6 @@ void cumsum(int* x, int *sz, int *y) {
  }
 }
 
-
-//SEXP doAnalysisC(double *LA,int *nA, int *nC, int *nL, double *Y, double *iW, int *nCombs, double *Plist, double *pGvec,uword *simX,int *M) {
-
 extern "C" {
  void doAnalysisC(double *LA,int *nA, int *nC, int *nL, double *Y, double *iW, int *nCombs, double *Plist, double *pGvec,uword *simX,int *M) {
  //simX is 0 if not importance sample are applied. M is number of samples in simX

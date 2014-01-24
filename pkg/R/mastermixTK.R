@@ -861,7 +861,7 @@ calcPvalue = function(LRRMlist,lrobs) {
       print(rData)
      }
 #only supports one stain!
-      deconvlist <- deconvolve(mixData=mixD2[[1]],nC=nCGUI,eps=as.numeric(svalue(tab3c[3,2])),locsel_Mix=locsel_Mix[,1],refData=rData,locsel_Ref=lsRef,condOrder=condO,zeroMx=svalue(tab3c[5,2]),threshT=as.numeric(svalue(tab3c[4,2])),verbose=TRUE)
+      deconvlist <- deconvolve(nC=nCGUI,mixData=mixD2[[1]],refData=rData,condOrder=condO,locsel_Mix=locsel_Mix[,1],locsel_Ref=lsRef,eps=as.numeric(svalue(tab3c[3,2])),zeroMx=svalue(tab3c[5,2]),threshT=as.numeric(svalue(tab3c[4,2])),verbose=TRUE)
 #     print(deconvlist)
      assign("deconvlist",deconvlist,envir=mmTK) #store results from deconv
      #send deconvolved results to next frame

@@ -2,7 +2,6 @@
 #' @author Oyvind Bleka <Oyvind.Bleka.at.fhi.no>
 #' @description getContrCombs is a helpfunction to specify all possible combined genotypes for a give hypothesis.
 #' @export
-#' @usage getContrCombs(Alist,nC,symmetry=FALSE,refs=NULL,condOrder=NULL,complete=TRUE)
 #' @details Note: If a reference is unselected, it as numeric() in its loci
 #' 
 #' The allele-names are coded with a ascii-symbol to have threat more than 10-alleles in a loci.
@@ -21,6 +20,7 @@ getContrCombs <- function(Alist,nC,symmetry=FALSE,refs=NULL,condOrder=NULL,compl
  #ref[[k]]=c("A1","A2") is a list of alleles to condition on.
  #condOrder gives order of references in system. It must be same length as number of references in refs.
  #complete: Boolean for requiring the set of combinations to fill the Alist.
+ require(gtools)
 
  #helpfunctions:
  toAscii = function(x) { #takes vector with integers 1 to 62

@@ -2,13 +2,22 @@
 \alias{genDataset}
 \title{genDataset}
 \usage{
-  genDataset(nC,popFreq)
+  genDataset(nC, popFreq, mu = 10000, sd = 1000)
 }
 \arguments{
   \item{nC}{Number of contributors in model.}
 
   \item{popFreq}{A list of allele frequencies for a given
   population.}
+
+  \item{mu}{Expected peak heights for an allele of a
+  contributor.}
+
+  \item{sd}{Standard deviation of peak heights for an
+  allele of a contributor.}
+}
+\value{
+  List with elements trueMx,mixData,refData
 }
 \description{
   genDataset samples a random mixture with gaussian peak
