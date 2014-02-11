@@ -6,7 +6,7 @@ using namespace std;
 using namespace arma;
 //#define DEBUG
 //helpfunctions:
-void cumsum(int* x, int *sz, int *y);
+void cumsum0(int* x, int *sz, int *y);
 
 /************************/
 /****Helpfunctions*******/
@@ -14,7 +14,7 @@ void cumsum(int* x, int *sz, int *y);
 
 //function calculating cumulative values in x
 //x: steps, sz: vectorlength, y: vector
-void cumsum(int* x, int *sz, int *y) {
+void cumsum0(int* x, int *sz, int *y) {
  int i;
  y[0] = 0;
  for(i=0; i<*sz; i++) {
@@ -52,9 +52,9 @@ void calcLthetaC(double *PE,int *nA, int *nC, int *nL, double *allY,  double *al
  for(i=0; i<*nL; i++) { 
   nAsq[i] = nA[i]*nA[i]; 
  } //square numbers
- cumsum(nA, nL, CnA); //cumulative numbers of nA
- cumsum(nAsq, nL, CnA2); //cumulative squared number of alleles nA
- cumsum(nQi, nL, CnQ); //cumulative of numbers of genotypes. Used in pG
+ cumsum0(nA, nL, CnA); //cumulative numbers of nA
+ cumsum0(nAsq, nL, CnA2); //cumulative squared number of alleles nA
+ cumsum0(nQi, nL, CnQ); //cumulative of numbers of genotypes. Used in pG
 
 #ifdef DEBUG
  for(i=0; i<*nL; i++) {
