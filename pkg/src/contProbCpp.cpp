@@ -1,17 +1,9 @@
-//This function permutates and fits a lin. gauss. model (Tvedebrink 2011).
 //cd ~/Dropbox/Forensic/MixtureProj/myDev/mastermix/R
 //R CMD SHLIB contProbCpp.cpp -llapack -lblas
-
-
-#include <iostream>
-#include <fstream>
-#include <cstdlib>
-#include <cmath>
-#include <string.h>
-#include <vector>
-#include <list>
-#include <armadillo> 
-#include <algorithm> 
+#include <cmath> //math expressions
+#include <vector> //list-structure for loci
+#include <RcppArmadillo.h> //require RcppArmadillopackage and Namespaced defined
+//#include <armadillo>//
 using namespace std;
 using namespace arma;
 const double PI = std::acos(0.0)*2;
