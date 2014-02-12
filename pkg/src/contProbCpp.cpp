@@ -6,7 +6,7 @@
 //#include <armadillo>//
 using namespace std;
 using namespace arma;
-const double PI = std::acos(0.0)*2;
+const double PIVAL = std::acos(0.0)*2;
 //#define DEBUG
 //helpfunctions:
 void cumsum(int* x, int *sz, int *y);
@@ -207,7 +207,7 @@ class MasterMix0 {
      ginvXtWX = pinv(sumXtWX); //generalized inverse
      mhat = ginvXtWX*sumXtWY;
      MD = sumYtWY - 2*trans(sumXtWY)*mhat + trans(mhat)*sumXtWX*mhat; //MAHALONOBIS DISTANCE
-     tmpLA = 1/sqrt(pow(2*PI*MD/n,n))*exp(-0.5*n)*prodPG;
+     tmpLA = 1/sqrt(pow(2*PIVAL*MD/n,n))*exp(-0.5*n)*prodPG;
 //     tmpLA.print();
      LAsum = LAsum + tmpLA;
     } else {
@@ -269,7 +269,7 @@ class MasterMix0 {
       ginvXtWX = pinv(sumXtWX); //generalized inverse
       mhat = ginvXtWX*sumXtWY;
       MD = sumYtWY - 2*trans(sumXtWY)*mhat + trans(mhat)*sumXtWX*mhat; //MAHALONOBIS DISTANCE
-      tmpLA = 1/sqrt(pow(2*PI*MD/n,n))*exp(-0.5*n)*prodPG;
+      tmpLA = 1/sqrt(pow(2*PIVAL*MD/n,n))*exp(-0.5*n)*prodPG;
       LAsum = LAsum + (rowrange(1,i)-rowrange(0,i)+1)*tmpLA/M;
      } else {
       recfitX(i+1);
