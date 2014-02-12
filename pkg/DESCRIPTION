@@ -11,8 +11,8 @@ Description: mastermix includes procedure for optimizing linear gaussian
 License: GPL(>=2)
 Depends:
     R (>= 3.0.2),
-    Rcpp (>= 0.11.0),
-    RcppArmadillo (>= 0.4.000.2)
+    Rcpp (>= 0.10.6),
+    RcppArmadillo (>= 0.4.000)
 LinkingTo: Rcpp, RcppArmadillo
 Imports:
     gtools,MASS,forensim,gWidgetstcltk
