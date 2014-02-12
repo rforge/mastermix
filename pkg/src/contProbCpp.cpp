@@ -400,7 +400,7 @@ void calcLthetaC(double *PE,int *nA, int *nC, int *nL, double *allY,  double *al
 
   for(j=0; j<nQi[i]; j++) { //for all genotypes: Init space and insert relevant matrice directly
    Xij = new Mat<double>( &allX[cdfX[cc]-1] ,nA[i],*nC-1,false); //init. Xij-matrix
-   Oij = new Mat<double>( &allO[cdfX[cc]-1] ,nA[i],*nC-1,false); //init. Pi-matrices as blocked   
+   Oij = new Mat<double>( &allO[cdfX[cc]-1] ,nA[i],1,false); //init. Pi-matrices as blocked   
    mui = (*Xij)*(*omega) + *Oij; //mean
    ri = *Yi - mui; //residual
    Di = trans(ri)*(*iWi)*(ri); //mahalonobis distance
