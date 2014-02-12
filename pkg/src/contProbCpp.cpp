@@ -1,12 +1,20 @@
+//This function permutates and fits a lin. gauss. model (Tvedebrink 2011).
 //cd ~/Dropbox/Forensic/MixtureProj/myDev/mastermix/R
 //R CMD SHLIB contProbCpp.cpp -llapack -lblas
-#include <cmath> //math expressions
-#include <vector> //list-structure for loci
-#include <RcppArmadillo.h> //require RcppArmadillopackage and Namespaced defined
-//#include <armadillo>//
+
+
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
+#include <cmath>
+#include <string.h>
+#include <vector>
+#include <list>
+#include <armadillo> 
+#include <algorithm> 
 using namespace std;
 using namespace arma;
-const double PIVAL = std::acos(0.0)*2;
+const double PI = std::acos(0.0)*2;
 //#define DEBUG
 //helpfunctions:
 void cumsum(int* x, int *sz, int *y);
@@ -56,7 +64,7 @@ class Loci {
    cumPind = new int[nCombs];
    for(j=0; j<nCombs; j++) { cumPind[j] = j*nA; } //cumulative index for Pmatrix 
    S_Y = accu(*Y);
-   //if(nA>2*nC) printf("Too few contributors!!");
+   if(nA>2*nC) printf("Too few contributors!!");
    this->nC = nC;
    this->nA = nA;
    this->nCombs = nCombs;
@@ -66,8 +74,8 @@ class Loci {
    iW->print();
    Pmatrix->print();
    for(j=0; j<nCombs; j++) { 
-    printf("%i",cumPind[j]);
-    printf("%f",PG[j]);
+    cout << cumPind[j] << endl; 
+    cout << PG[j] << endl; 
    } //cumulative index for Pmatrix 
 #endif
   }
@@ -76,8 +84,19 @@ class Loci {
    delete[] cumPind;
   }
 
+/*Functions of class*/
+  void print() {
+   int i,k;
+   cout << "Locus number " <<locinr << ".\n";
+   cout << "Data: "; 
+   Y->print();
+   cout << "\nGen-Combinations: "; 
+   cout << "\n\n";
+  }
+
    //function for updating combmatrix Pi for current loci
   void updateCombMatrix() {
+//   cout << cumPind[combsel] << endl;
    int k;
    Pi->submat(0,0,nA-1,nC-1)  = Pmatrix->submat(cumPind[combsel],0,cumPind[combsel]+nA-1,nC-1); 
    for(k=0;k<(nC-1); k++) {
@@ -159,8 +178,9 @@ class MasterMix0 {
    #ifdef DEBUG
     simX->print();
     Y->print();
-    if(M==0) {  printf("Number of combinations to fit: %i",S);  }
    #endif
+   if(M==0) { cout << "Number of combinations to fit: " << S << endl;  
+   } else { cout << "Number of samples: " << M << endl; } 
   }
   ~MasterMix0() {
    delete Y,O,X,simX;
@@ -195,7 +215,8 @@ class MasterMix0 {
      ginvXtWX = pinv(sumXtWX); //generalized inverse
      mhat = ginvXtWX*sumXtWY;
      MD = sumYtWY - 2*trans(sumXtWY)*mhat + trans(mhat)*sumXtWX*mhat; //MAHALONOBIS DISTANCE
-     tmpLA = 1/sqrt(pow(2*PIVAL*MD/n,n))*exp(-0.5*n)*prodPG;
+     tmpLA = 1/sqrt(pow(2*PI*MD/n,n))*exp(-0.5*n)*prodPG;
+//     tmpLA.print();
      LAsum = LAsum + tmpLA;
     } else {
      recfit(i+1);
@@ -256,7 +277,7 @@ class MasterMix0 {
       ginvXtWX = pinv(sumXtWX); //generalized inverse
       mhat = ginvXtWX*sumXtWY;
       MD = sumYtWY - 2*trans(sumXtWY)*mhat + trans(mhat)*sumXtWX*mhat; //MAHALONOBIS DISTANCE
-      tmpLA = 1/sqrt(pow(2*PIVAL*MD/n,n))*exp(-0.5*n)*prodPG;
+      tmpLA = 1/sqrt(pow(2*PI*MD/n,n))*exp(-0.5*n)*prodPG;
       LAsum = LAsum + (rowrange(1,i)-rowrange(0,i)+1)*tmpLA/M;
      } else {
       recfitX(i+1);
@@ -285,8 +306,11 @@ void cumsum(int* x, int *sz, int *y) {
  }
 }
 
+
 extern "C" {
- void doAnalysisC(double *LA,int *nA, int *nC, int *nL, double *Y, double *iW, int *nCombs, double *Plist, double *pGvec,uword *simX,int *M) {
+
+
+void doAnalysisC(double *LA,int *nA, int *nC, int *nL, double *Y, double *iW, int *nCombs, double *Plist, double *pGvec,uword *simX,int *M) {
  //simX is 0 if not importance sample are applied. M is number of samples in simX
  int i,j,nA2;
  int *CnA = new int[*nL+1]; //cumulative index for vector
@@ -323,34 +347,31 @@ extern "C" {
   lociList.push_back(new Loci(i+1,nA[i], &Y[CnA[i]],*nC, &iW[CnA2[i]], nCombs[i] ,&Plist[CGind[i]], &pGvec[CPGind[i]]));
  }
 #ifdef DEBUG
- printf("Check elements:");
+ cout << "Check elements:" << endl;
  for(i=0; i<*nL; i++) {
-  printf("%i",lociList[i]->locinr);
-//  (lociList[i]->Y)->print();
-//  (lociList[i]->Pmatrix)->print();
+  cout << lociList[i]->locinr << endl;
+  (lociList[i]->Y)->print();
+  cout << sizeof(*(lociList[i])) << endl;
+  (lociList[i]->Pmatrix)->print();
  }
+ cout << lociList.capacity() << endl;
 #endif
 
   MasterMix0 *modelfit = new MasterMix0(*nL,*nC,CnA,&lociList, simX,*M);
   if(*M==0) { modelfit->recfit(0); } //if exact method
   if(*M>0) { modelfit->recfitX(0); } //if sampling  method
  *LA = modelfit->LAsum(0,0);
+//  cout << *LA << endl;
  //deallocation:
  delete modelfit;
  for(i=0; i<*nL; i++) {
   delete lociList[i]; //delete objects
  }
- delete[] CnA;
- delete[] CnA2;
- delete[] CGind;
- delete[] CPGind;
- delete[] nCG;
- delete[] nAsq;
+ delete[] CnA,CnA2,CGind,CPGind,nCG,nAsq;
 }
 
-
 //function for calculating inner product of integrale of theta
-void calcLthetaC(double *PE,int *nA, int *nC, int *nL, double *allY,  double *allX,  double *allO,  double *alliW,  int *cdfX, int *nQi, double *pG, double *theta) {
+void calcLthetaC(double *PE,int *nA, int *nC, int *nL, double *allY,  double *allX,  double *allO,  double *alliW,  int *cdfX, int *cdfO, int *nQi, double *pG, double *theta) {
 
  int i,j,cc;
  int *CnA = new int[*nL+1]; //cumulative index for vector
@@ -400,7 +421,7 @@ void calcLthetaC(double *PE,int *nA, int *nC, int *nL, double *allY,  double *al
 
   for(j=0; j<nQi[i]; j++) { //for all genotypes: Init space and insert relevant matrice directly
    Xij = new Mat<double>( &allX[cdfX[cc]-1] ,nA[i],*nC-1,false); //init. Xij-matrix
-   Oij = new Mat<double>( &allO[cdfX[cc]-1] ,nA[i],1,false); //init. Pi-matrices as blocked   
+   Oij = new Mat<double>( &allO[cdfO[cc]-1] ,nA[i],1,false); //init. Pi-matrices as blocked   
    mui = (*Xij)*(*omega) + *Oij; //mean
    ri = *Yi - mui; //residual
    Di = trans(ri)*(*iWi)*(ri); //mahalonobis distance
