@@ -48,9 +48,10 @@
 \value{
   Optimized deconvolution model object.
   \item{simpleList}{Table of loci independent
-  optimizations} \item{pList}{Resultlist of optimized
-  combinations, mixture proportions and error-distances
-  (MD).} \item{locinames}{Name of loci in mixData}
+  optimizations. Uses independent covariance structure.}
+  \item{pList}{Resultlist of optimized combinations,
+  mixture proportions and error-distances (MD).}
+  \item{locinames}{Name of loci in mixData}
   \item{result1}{Tabled optimized results in format 1.}
   \item{result2}{Tabled optimized results in format 2.}
   \item{data}{All data used as input in analysis.}

@@ -20,12 +20,12 @@
   List with elements trueMx,mixData,refData
 }
 \description{
-  genDataset samples a random mixture with gaussian peak
-  height.
+  genDataset samples a random mixture with Normal[+] peak
+  heights.
 }
 \details{
   Simple function for generating a random peak height
-  mixture.
+  mixture distributed as normal positive truncated.
 }
 \author{
   Oyvind Bleka <Oyvind.Bleka.at.fhi.no>

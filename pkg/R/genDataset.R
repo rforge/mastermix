@@ -1,8 +1,8 @@
 #' @title genDataset
 #' @author Oyvind Bleka <Oyvind.Bleka.at.fhi.no>
-#' @description genDataset samples a random mixture with gaussian peak height.
+#' @description genDataset samples a random mixture with Normal[+] peak heights.
 #' @export
-#' @details Simple function for generating a random peak height mixture.
+#' @details Simple function for generating a random peak height mixture distributed as normal positive truncated.
 #' @param nC Number of contributors in model.
 #' @param popFreq A list of allele frequencies for a given population.
 #' @param mu Expected peak heights for an allele of a contributor.
@@ -22,7 +22,8 @@ genDataset = function(nC,popFreq,mu=10000,sd=1000) {
    for(s in 1:nC) {
     refData[[i]][[s]] = sample(names(popFreq[[i]]),size=2,prob=popFreq[[i]],replace=TRUE)
     mixA = c(mixA, refData[[i]][[s]] )
-    mixH = c(mixH, abs(rnorm(2,mu*Mx[s],sd)))
+    mixH = c(mixH, qnorm(runif(2,0.5,1))*sd+(mu*Mx[s])) #generate with N+(mu,sd)
+#    mixH = c(mixH, abs(rnorm(2,mu*Mx[s],sd))) #generate with N+(mu,sd)
    }
    agg=aggregate( mixH,by=list(mixA),sum)
    mixData$adata[[i]] = agg[,1]

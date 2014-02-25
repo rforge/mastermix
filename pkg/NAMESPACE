@@ -1,4 +1,5 @@
 export(contProb)
+export(contProbBayes)
 export(deconvolve)
 export(genDataset)
 export(getContrCombs)
