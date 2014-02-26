@@ -21,7 +21,7 @@
 #' @keywords continous, Bayesian
 
 #this model is introduced in Tvedebrink,T, et.al.(2012): But extended to bayesian model
-contProbBayes = function(nC,mixData,popFreq,refData=NULL,condOrder=NULL,COV="WLS",threshT=50,pTau=function(x) { dgamma(1/x,1,0.001)}, taumax=10000, maxeval=10000){
+contProbBayes = function(nC,mixData,popFreq,refData=NULL,condOrder=NULL,COV="WLS",threshT=50,pTau=function(x) { return(1) }, taumax=100, maxeval=10000){
  require(gtools)
  require(MASS) 
  require(cubature)

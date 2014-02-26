@@ -4,8 +4,7 @@
 \usage{
   contProbBayes(nC, mixData, popFreq, refData = NULL,
     condOrder = NULL, COV = "WLS", threshT = 50,
-    pTau = function(x) {     dgamma(1/x, 1, 0.001) },
-    taumax = 10000, maxeval = 10000)
+    pTau = function(x) { return(1) }, taumax=100 , maxeval = 10000)
 }
 \arguments{
   \item{nC}{Number of contributors in model.}
