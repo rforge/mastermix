@@ -4,7 +4,8 @@
 \usage{
   contProbBayes(nC, mixData, popFreq, refData = NULL,
     condOrder = NULL, COV = "WLS", threshT = 50,
-    pSigmasq = function(x) {     return(1) })
+    pTau = function(x) {     dgamma(1/x, 1, 0.001) },
+    taumax = 10000, maxeval = 10000)
 }
 \arguments{
   \item{nC}{Number of contributors in model.}
@@ -34,8 +35,14 @@
   \item{threshT}{The analytical threshold given. Used when
   considering allele drop-outs.}
 
-  \item{pSigmasq}{Prior function for sigmasq-parameter.
-  Flat prior is default.}
+  \item{pTau}{Prior function for tau-parameter. Flat prior
+  is default.}
+
+  \item{taumax}{Maximum range of tau-parameter. Default is
+  10000.}
+
+  \item{maxeval}{Maxumum number of evaluations in the
+  interale function.}
 }
 \value{
   PE Aposterior probability of hypothesis (model) given

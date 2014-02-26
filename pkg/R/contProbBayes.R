@@ -13,14 +13,15 @@
 #' @param condOrder Specify conditioning references from refData (must be consistent order). For instance condOrder=(0,2,1,0) means that we restrict the model such that Ref2 and Ref3 are respectively conditioned as 2. contributor and 1. contributor in the model.
 #' @param COV Covariance structure of peak heights: "OLS", "WLS" or "GLS". Default is "WLS".
 #' @param threshT The analytical threshold given. Used when considering allele drop-outs.
-#' @param pSigmasq Prior function for sigmasq-parameter. Flat prior is default.
+#' @param pTau Prior function for tau-parameter. Flat prior is default.
+#' @param taumax Maximum range of tau-parameter. Default is 10000.
+#' @param maxeval Maxumum number of evaluations in the interale function.
 #' @return PE Aposterior probability of hypothesis (model) given evidence.
 #' @references Tvedebrink,T, et.al.(2012). Identifying contributors of DNA mixtures by means of quantitative information of STR typing. Journal of Computational Biology, 19(7),887-902.
 #' @keywords continous, Bayesian
 
 #this model is introduced in Tvedebrink,T, et.al.(2012): But extended to bayesian model
-contProbBayes = function(nC,mixData,popFreq,refData=NULL,condOrder=NULL,COV="WLS",threshT=50,pSigmasq=function(x) { return(1)}){
- #pSigmasq = function(x) dgamma(1/x,10,20)
+contProbBayes = function(nC,mixData,popFreq,refData=NULL,condOrder=NULL,COV="WLS",threshT=50,pTau=function(x) { dgamma(1/x,1,0.001)}, taumax=10000, maxeval=10000){
  require(gtools)
  require(MASS) 
  require(cubature)
@@ -221,10 +222,10 @@ contProbBayes = function(nC,mixData,popFreq,refData=NULL,condOrder=NULL,COV="WLS
 
  prodlikY_omegaC <- function(theta) {   #call c++- function:
   val <- .C("calcLthetaC",as.numeric(PE),as.integer(nA), as.integer(nC), as.integer(nL), as.numeric(allY),  as.numeric(allX), as.numeric(allO),  as.numeric(alliW),  as.integer(cdfX), as.integer(cdfO),as.integer(nQi), as.numeric(pG), as.numeric(theta),PACKAGE="mastermix")[[1]]
-  val <- val*pSigmasq(theta[nC]); #dgamma(1/theta[nC],10,20) #multiply with prior
+  val <- val*pTau(theta[nC]); 
   return(val)
  }
- PEint <- adaptIntegrate(prodlikY_omegaC, lowerLimit = rep(0,nC), upperLimit = c(rep(1,nC-1),1000000))[[1]]
+ PEint <- adaptIntegrate(prodlikY_omegaC, lowerLimit = rep(0,nC), upperLimit = c(rep(1,nC-1),taumax),maxEval = maxeval )[[1]]
  return(PEint)
 }
 
