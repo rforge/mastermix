@@ -1,8 +1,4 @@
-export(contProb)
-export(contProbBayes)
 export(deconvolve)
 export(genDataset)
 export(getContrCombs)
 export(mastermixTK)
-useDynLib(mastermix)
-exportPattern("^[[:alpha:]]+")

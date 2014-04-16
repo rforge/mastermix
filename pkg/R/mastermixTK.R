@@ -1,10 +1,16 @@
+###
+#TODO
+#1) Legg inn 0.99 quantile. Beregn avstand (LR0-q99) distance
+
 ###########
 #Changelog#
 ###########
-#14.05.13 - Start create GUI for mastermix-functions (replaces mixinttool)
-#25.07.13 - Fix problem with condOrder argument used with keepElite
-#20.01.14 - Quant-probability function contProb finished implemented (not inserted into GUI).
+
+#16.04.14 - Bugs: Fix invariant Locus-names,Handle if refData is empty
 #21.01.14 - Bugs found before deconvolving
+#20.01.14 - Quant-probability function contProb finished implemented (not inserted into GUI).
+#25.07.13 - Fix problem with condOrder argument used with keepElite
+#14.05.13 - Start create GUI for mastermix-functions (replaces mixinttool)
 
 #' @title mastermixTK
 #' @author Oyvind Bleka <Oyvind.Bleka.at.fhi.no>
@@ -20,7 +26,8 @@
 
 mastermixTK = function() {
  #setwd("~/Dropbox/Forensic/MixtureProj/myDev/mastermix/R")
- #rm(list=ls()) #must be removed after debugging
+ #source("mastermixTK.R")
+ rm(list=ls()) #must be removed after debugging
  #size of main window
  mwH <- 1000
  mwW <- 1000
@@ -75,13 +82,13 @@ mastermixTK = function() {
    Anames = tab[,1]
    tab = tab[,-1]
    freqlist = list()
-   for(j in 1:ncol(tab)) {
+   for(j in 1:ncol(tab)) { #for each locus
      tmp = tab[,j]
      tmp2 = tmp[!is.na(tmp)]
      names(tmp2) = Anames[!is.na(tmp)]
      freqlist[[j]] = tmp2
    }
-   names(freqlist) = colnames(tab)
+   names(freqlist) = toupper(colnames(tab)) #LOCUS-names are assigned as Upper-case
    kit = unlist(strsplit(freqfiles[i],"_"))[1]
    pop = unlist(strsplit(freqfiles[i],"_"))[2]
    pop = unlist(strsplit(pop,"\\."))[1]
@@ -166,7 +173,7 @@ mastermixTK = function() {
    if(length(A_ind)>0) Y[[sn[k]]]$adata=list()
    if(length(H_ind)>0) Y[[sn[k]]]$hdata=list()
    for(i in 1:I) { #for each locus
-     xind = X[,sind]==sn[k] & X[,lind]==ln[i] #get index in X for given sample and locus
+     xind = X[,sind]==sn[k] & toupper(X[,lind])==ln[i] #get index in X for given sample and locus
      if(length(A_ind)>0) Y[[sn[k]]]$adata[[ln[i]]] = as.character(X[xind,A_ind][!X[xind,A_ind]%in%c("","NA")])
      if(length(H_ind)>0) Y[[sn[k]]]$hdata[[ln[i]]] = as.numeric(as.character(X[xind,H_ind][!X[xind,H_ind]%in%c("","NA")]))
    }
@@ -588,7 +595,7 @@ calcPvalue = function(LRRMlist,lrobs) {
   proffile = gfile(text=paste("Open ",type,"-profile",sep=""),type="open",filter=list("text"=list(patterns=list("*.txt","*.csv","*.tab"))))
   if(!is.na(proffile)) {
    Data = tableReader(proffile) #load profile
-   print(Data) #print input data
+   print(Data) #print raw-input data
    Data = sample_tableToList(Data) #convert from table to list
    #get already stored data:
    if(type=="mix") Data2 <- getData("mix") #get data from mmTK-environment
@@ -845,7 +852,7 @@ calcPvalue = function(LRRMlist,lrobs) {
      rData <- NULL
      lsRef <- NULL
      condO <- NULL 
-     if(any(locsel_Ref)) { #if any conditioned references
+     if(nR>0 && any(locsel_Ref)) { #if any conditioned references
       rData<-refD2 
       lsRef<-locsel_Ref
       condO <- rep(0,nR)  #conditional order of the checked references
