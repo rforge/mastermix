@@ -8,7 +8,14 @@ Maintainer: Oyvind Bleka <Oyvind.bleka@fhi.no>
 Description: mastermix includes procedure for optimizing linear gaussian
     deconvolution model handling STR DNA mixtures. 
 License: GPL(>=2)
+Depends:
+    R (>= 3.0.0)
 Imports:
     gtools,MASS,forensim,gWidgetstcltk
 Suggests:
     gtools,MASS,forensim,gWidgetstcltk
+Collate:
+    'deconvolve.R'
+    'mastermixTK.R'
+    'genDataset.R'
+    'getContrCombs.R'
