@@ -26,8 +26,9 @@
 
 mastermixTK = function() {
  #setwd("~/Dropbox/Forensic/MixtureProj/myDev/mastermix/R")
- #source("mastermixTK.R")
- rm(list=ls()) #must be removed after debugging
+ #setwd("C:/Users/oebl/Dropbox/Forensic/MixtureProj/myDev/mastermix/R")
+# source("mastermixTK.R")
+# rm(list=ls()) #must be removed after debugging
  #size of main window
  mwH <- 1000
  mwW <- 1000
@@ -160,10 +161,10 @@ mastermixTK = function() {
  #Helpfunctions for converting profiles from table to list.
  sample_tableToList = function(X) {
   cn = colnames(X) #colnames 
-  lind = grep("marker",tolower(cn)) #locus col-ind
-  sind = grep("sample",tolower(cn)) #sample col-ind
-  A_ind = grep("allele",tolower(cn)) #allele col-ind
-  H_ind = grep("height",tolower(cn)) #height col-ind
+  lind = grep("marker",tolower(cn),fixed=TRUE) #locus col-ind
+  sind = grep("sample",tolower(cn),fixed=TRUE) #sample col-ind
+  A_ind = grep("allele",tolower(cn),fixed=TRUE) #allele col-ind
+  H_ind = grep("height",tolower(cn),fixed=TRUE) #height col-ind
   ln = toupper(unique(X[,lind])) #locus names: Convert to upper case
   sn = unique(X[,sind]) #sample names
   I = length(ln)
@@ -629,7 +630,7 @@ calcPvalue = function(LRRMlist,lrobs) {
      print(paste("Samplename: ",msel,sep=""))
      print(subD)
      for(loc in names(subD$adata)) {
-      #if(length(grep("AMEL",loc))>0) next
+      #if(length(grep("AMEL",loc,fixed=TRUE))>0) next
       subD$adata[[loc]] <- as.numeric(subD$adata[[loc]])
      }
      plotEPG(subD,kit,msel) #plot epg's
@@ -773,7 +774,7 @@ calcPvalue = function(LRRMlist,lrobs) {
     subD <- mixD[[mixSel[nm]]] #select profile
     if(nm==1) locnames <- toupper(names(subD$adata)) #get loc-names
     for(i in 1:length(subD$adata)) { #use loci-name of first 
-     locind <- grep(names(subD$adata)[i],locnames) #get loc-index of stain:
+     locind <- grep(names(subD$adata)[i],locnames,fixed=TRUE) #get loc-index of stain:
      if(length(locind)==0) next #skip if not found
      if(nm==1) tab3b[locstart+i,1] <- locnames[i] #insert loc-name
      tab3b[locstart+locind,1 + nm]  <- gcheckbox(text="",container=tab3b,checked=TRUE)
@@ -786,7 +787,7 @@ calcPvalue = function(LRRMlist,lrobs) {
      tab3b[2,1 + nM + nr] <- gcheckbox(text="",container=tab3b,checked=FALSE)
      subD <- refD[[refSel[nr]]] #select profile
      for(i in 1:length(subD$adata)) {
-      locind <- grep(names(subD$adata)[i],locnames) #get loc-index of stain:
+      locind <- grep(names(subD$adata)[i],locnames,fixed=TRUE) #get loc-index of stain:
       if(length(locind)==0) next #skip if not found
       tab3b[locstart+locind,1 + nM + nr]  <- gcheckbox(text="",container=tab3b,checked=TRUE)
       #note: some data may miss some loci 
@@ -834,7 +835,7 @@ calcPvalue = function(LRRMlist,lrobs) {
      for(i in 1:length(locnames)) { #for each needed locus
       refD2[[locnames[i]]] <- list()
       for(nr in 1:nR) { #for each selected references
-       locind <- grep(locnames[i],toupper(names(refD[[refSel[nr]]]$adata))) #get loc-index of prof
+       locind <- grep(locnames[i],toupper(names(refD[[refSel[nr]]]$adata)),fixed=TRUE) #get loc-index of prof
        locsel <- svalue(tab3b[locstart+locind,1 + nM + nr]) #boolean whether selected 
        if(length(locind)==0 | !locsel) {
         refD2[[locnames[i]]][[refSel[nr]]]  <- numeric() 
@@ -915,7 +916,7 @@ calcPvalue = function(LRRMlist,lrobs) {
    }
    #create table in tab4a
    tab4b[1,1] <- glabel(text="",container=tab4b)
- #  tab4b[3,2] <- gradio(items=layouts,container=tab4b,selected=grep(layout,layouts))
+ #  tab4b[3,2] <- gradio(items=layouts,container=tab4b,selected=grep(layout,layouts,fixed=TRUE))
 #   tab4b[4,2] <- gbutton(text="Update table",container=tab4b, handler=function(h,...) { refreshTab4( svalue(tab4b[3,2])  )}) #refresh table with selected layout
    tab4c[1,1] <- glabel(text="",container=tab4c)
    tab4c[2,1] <- glabel(text="             ",container=tab4c)
@@ -957,11 +958,11 @@ calcPvalue = function(LRRMlist,lrobs) {
     }
     #get selected loci of checked mixtures
     for(nm in names(LRlist$Evidsel)) {  
-     mixind <- grep(nm,mixSel) #get index in GUI
-     subA <- names(mixD[[nm]]$adata) #get names of selected mix-profile
-     for(i in 1:length(subA)) { #for each allele in selected mix
-      locind <- grep(subA[i],locnames) #get loc-index of stain in GUI:
-      if(length(grep("AMEL",toupper(subA[i])))==0 & svalue(tab5b[1+locind,1 + mixind]))  LRlist$Evidsel[[nm]][i] <- TRUE
+     mixind <- grep(nm,mixSel,fixed=TRUE) #get index in GUI
+     subA <- names(mixD[[nm]]$adata) #get loci-names of selected mix-profile
+     for(i in 1:length(subA)) { #for each locus in selected mix
+      locind <- grep(subA[i],locnames,fixed=TRUE) #get loc-index of stain in GUI:
+      if(length(grep("AMEL",toupper(subA[i]),fixed=TRUE))==0 && svalue(tab5b[1+locind,1 + mixind]) )  LRlist$Evidsel[[nm]][i] <- TRUE
      }
     }
     #get selected options:
@@ -995,16 +996,16 @@ calcPvalue = function(LRRMlist,lrobs) {
    evidnames <- names(LRlist$Evidsel)
    nM <- length(evidnames)
    for(ln in LRlist$locnames) {
-    if(length(grep("AMEL",toupper(ln)))>0) next #skipped anyhow
+    if(length(grep("AMEL",toupper(ln),fixed=TRUE))>0) next #skipped anyhow
     print(paste("Calculating LR for loci ",ln,"...",sep=""))
-    freq <- popFreq[[grep(toupper(ln), toupper(names(popFreq)))]] #take out frequeny
+    freq <- popFreq[[grep(toupper(ln), toupper(names(popFreq)),fixed=TRUE)]] #take out frequeny
     if(is.null(freq)) next #no frequencies found for given allele
     freqQ <- freq #default it is all alleles
     LRfit[[ln]] <- list() #storage for each loci
     evidA <- numeric() #alleles for evidence
     evidList <- list()
     for(nm in evidnames) { #for each evidence
-     evidlocind <- grep(ln,names(LRlist$mixData[[nm]]$adata)) #get lociind in evidence
+     evidlocind <- grep(ln,names(LRlist$mixData[[nm]]$adata),fixed=TRUE) #get lociind in evidence
      if(length(evidlocind)==0 || !LRlist$Evidsel[[nm]][evidlocind]) {
       tmpA=0 #locOK <- FALSE #loci was not found in evidence or not selected
       evidList[[nm]] <- numeric()
@@ -1023,7 +1024,7 @@ calcPvalue = function(LRRMlist,lrobs) {
     hpnames <- as.numeric()
     nchdnames <- as.numeric()
     for(nr in LRlist$Hp) { #for each reference in Hp
-     reflocind <- grep(ln,names(LRlist$refData[[nr]]$adata)) #get loc-index of reference:
+     reflocind <- grep(ln,names(LRlist$refData[[nr]]$adata),fixed=TRUE) #get loc-index of reference:
      if(length(reflocind)==0 || length(LRlist$refData[[nr]]$adata[[ln]])==0) {
       print(paste("Hp: Loci",ln,"was not found in reference ",nr,". You should unselect loci."))      
      } else {
@@ -1040,7 +1041,7 @@ calcPvalue = function(LRRMlist,lrobs) {
     hdnames <- as.numeric()
     refHd <- as.numeric()
     for(nr in LRlist$Hd) { #for each reference in Hp
-     reflocind <- grep(ln,names(LRlist$refData[[nr]]$adata)) #get loc-index of reference:
+     reflocind <- grep(ln,names(LRlist$refData[[nr]]$adata),fixed=TRUE) #get loc-index of reference:
      if(length(reflocind)==0 || length(LRlist$refData[[nr]]$adata[[ln]])==0) {
       print(paste("Hd: Loci",ln,"was not found in reference ",nr,". You should unselect loci."))      
      } else {
@@ -1210,10 +1211,10 @@ calcPvalue = function(LRRMlist,lrobs) {
     subD <- mixD[[mixSel[nm]]] #select profile
     if(nm==1) locnames <- toupper(names(subD$adata)) #get loc-names
     for(i in 1:length(subD$adata)) {
-     locind <- grep(names(subD$adata)[i],locnames) #get loc-index of stain:
+     locind <- grep(names(subD$adata)[i],locnames,fixed=TRUE) #get loc-index of stain:
      if(nm==1) tab5b[1+i,1] <- locnames[i] #insert loc-name
      tab5b[1+locind,1 + nm]  <- gcheckbox(text="",container=tab5b,checked=TRUE)
-     if(length(grep("AMEL",names(subD$adata)[i]))>0) enabled(tab5b[1+locind,1 + nm]) <- FALSE
+     if(length(grep("AMEL",names(subD$adata)[i],fixed=TRUE))>0) enabled(tab5b[1+locind,1 + nm]) <- FALSE
     }
    }  
    #show referenced (possible partial profiles) profiles
@@ -1221,7 +1222,7 @@ calcPvalue = function(LRRMlist,lrobs) {
     tab5b[1,1 + nM + nr] <- glabel(text=refSel[nr],container=tab5b) #name of reference
     subD <- refD[[refSel[nr]]] #select profile
     for(i in 1:length(subD$adata)) { #for each marker 
-     locind <- grep(names(subD$adata)[i],locnames) #get loc-index of stain:
+     locind <- grep(names(subD$adata)[i],locnames,fixed=TRUE) #get loc-index of stain:
      check <- TRUE
      if(length(subD$adata[[i]])==0) check <- FALSE
      tab5b[1+locind,1 + nM + nr]  <- gcheckbox(text="",container=tab5b,checked=check)
