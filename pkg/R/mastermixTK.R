@@ -1,7 +1,7 @@
 ###
 #TODO
 #1) Legg inn 0.99 quantile. Beregn avstand (LR0-q99) distance
-#2) DatabasesÃ¸k med LR
+#2) Databasesøk med LR
 
 ###########
 #Changelog#
@@ -312,7 +312,7 @@ calcPvalue = function(LRRMlist,lrobs) {
   cc = cc + 1
   idx <- order(lrlist[[i]],decreasing=TRUE)
   X[cc,1:length(lrlist[[i]])] <- lrlist[[i]][idx]
-  P[cc,1:length(lrlist[[i]])] <- LRRMlist$pList[[i]][idx]
+  P[cc,1:length(lrlist[[i]])] <- LRRMlist$Glist[[i]]$Gprob[idx]
  } 
  X = X[1:cc,]
  P = P[1:cc,]
@@ -611,8 +611,7 @@ calcPvalue = function(LRRMlist,lrobs) {
      rownames(dbData) <- sn #insert sample names
      assign("dbData",dbData,envir=mmTK) #store matrix in environment for later use
      assign("popFreq",popFreq,envir=mmTK) #assign updated popFreq
-     print("Reference Database was successfully stored..")
-
+     print(paste0("Database successfully imported with ",nrow(dbData)," samples."))
      tmp <- unlist(strsplit(proffile,"/",fixed=TRUE)) #just label the file
      tab2b[2,3][] <- c(tab2b[2,3][], tmp[length(tmp)]) 
      enabled(tab2b[2,3]) <- FALSE #all is merged
@@ -650,10 +649,10 @@ calcPvalue = function(LRRMlist,lrobs) {
      print("------------------------------------")
      print(paste("Samplename: ",msel,sep=""))
      print(subD)
-     for(loc in names(subD$adata)) {
+#     for(loc in names(subD$adata)) {
       #if(length(grep("AMEL",loc,fixed=TRUE))>0) next
-      subD$adata[[loc]] <- as.numeric(subD$adata[[loc]])
-     }
+#      subD$adata[[loc]] <- as.numeric(subD$adata[[loc]])
+#     }
      plotEPG(subD,kit,msel) #plot epg's
     } 
    }
@@ -667,7 +666,6 @@ calcPvalue = function(LRRMlist,lrobs) {
    }
    if(h$action=="db") { 
     popFreq <- get("popFreq",envir=mmTK)
-    dbwin <- gwindow("References in imported database", visible=FALSE, width=mwW,height=mwH)
     dblocs <- toupper(colnames(selD)) #get database locs
     outD <- rownames(selD) #will be character
     for(i in 1:length(dblocs)) { #for each locus     
@@ -690,6 +688,11 @@ calcPvalue = function(LRRMlist,lrobs) {
      outD <- cbind(outD,newRow) #extend
     }
     colnames(outD) <- c("Reference",dblocs)
+    if(nrow(outD)>10000) {
+     gmessage(message="Database contained more than 10000 samples.\n Showing first 10000 samples only!")
+     outD <- outD[1:10000,]
+    }
+    dbwin <- gwindow("References in imported database", visible=FALSE, width=mwW,height=mwH)
     gtable(outD,container=dbwin,multiple=TRUE) #create table
     visible(dbwin) <- TRUE
    }
@@ -998,7 +1001,7 @@ calcPvalue = function(LRRMlist,lrobs) {
    if(!is.na(tabfile)) {
     if(h$action=="Layout1") tab <- deconvlist$result1
     if(h$action=="Layout2") tab <- deconvlist$result2
-    write.table(tab,file=tabfile,quote=FALSE,sep="\t",row.names=TRUE) #load environment
+    write.table(tab,file=tabfile,quote=FALSE,sep="\t",row.names=FALSE) #load environment.
     print(paste("Result table saved in ",tabfile,sep=""))
    }
   }
@@ -1394,6 +1397,7 @@ calcPvalue = function(LRRMlist,lrobs) {
 	function(h,...) {
      #send GUI-objects to get variables in LRopt which is sent to calcLR     
      doDBsearch(getLRoptions(locnames,mixSel,refSel,tab5a,tab5b),verbose=FALSE)  
+     refreshTab7() #update result-tab
      svalue(nb) <- 7 #change notetab
    })
   }
@@ -1605,6 +1609,10 @@ tab7c = glayout(spacing=1,container=tab7,expand=TRUE) #storing result
    if(!is.null(DBsearch )) {
     if(layout=="LR") ord <- order(as.numeric(DBsearch[,2]),decreasing=TRUE) 
     if(layout=="MAC") ord <- order(as.numeric(DBsearch[,3]),decreasing=TRUE) 
+    if(length(ord)>10000) {
+     gmessage(message="Database contained more than 10000 samples.\n Showing first 10000 ranked samples only!")
+     ord <- ord[1:10000] #only first 10000 shown
+    }
     tab7b[1,1] <- gtable(DBsearch[ord,] ,container=tab7b,multiple=TRUE,width=mwW,height=mwH-2*mwH/3,do.autoscroll=TRUE,noRowsVisible=TRUE) #add to frame
    }
    #create table in tab4a

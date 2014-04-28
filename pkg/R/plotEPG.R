@@ -10,7 +10,7 @@
 
 #wrapper function for plotting mixture data as epg profile
 #Using Oskars functions. Put generateEPG here
-plotEPG <- function(Data,kit,sname="") {
+plotEPG <- function(Data,kitname,sname="") {
  #mixData is list with allele and height data. Only one sample!
  #for selected sample:
 
@@ -404,7 +404,7 @@ generateEPG<-function(alleleList, peakHeightList, dyeVector=NULL, locusVector=NU
 	for (color in 1:noColors){
 
 		# Boolean vector indicating selected markers (same color).
-		selectedMarkers <- colorVector == colors[color]
+ 		selectedMarkers <- colorVector == colors[color]
 
 		# Extract all alleles in the same color channel.
 		allelesByColor <- alleleList[selectedMarkers]
@@ -431,7 +431,9 @@ generateEPG<-function(alleleList, peakHeightList, dyeVector=NULL, locusVector=NU
 				alleleValue <- sub("X", 1, alleleValue)
 				alleleValue <- sub("Y", 2, alleleValue)
 				alleleValue <- as.numeric(alleleValue)
-			}
+			} else { #added ØB
+			 alleleValue <- as.numeric(alleleValue) #added ØB
+                  } #added ØB
 
 			# Convert all allele names in current marker to base pairs.
 			basePairTmpLst[[marker]] <- offsetByColor[marker] + floor(alleleValue) * repeatUnitByColor[marker] + (alleleValue %% 1) * 10
@@ -574,17 +576,21 @@ generateEPG<-function(alleleList, peakHeightList, dyeVector=NULL, locusVector=NU
 			}
 		}
 	}
-}
+ par(mfrow = c(1, 1)) #
+} #end plot function
 
-
-
- print(kit)
  if(all(length(unlist(Data$hdata))==0)) { 
   gmessage(message="There is no height data in sample!",title="Error",icon="error")
  } else if(all(length(unlist(Data$adata))==0)) {
   gmessage(message="There is no allele data in sample!",title="Error",icon="error")
  } else {
-  generateEPG(typingKit=kit,alleleList=Data$adata,peakHeightList=Data$hdata, locusVector=names(Data$adata),sampleName=sname, drawBoxPlots=FALSE, drawPeaks=TRUE)
+   #fix order prior:
+   kit <- getKit(kitname, showMessages=TRUE)
+   if (!is.na(kit[[1]])) {
+	Data$adata <- Data$adata[toupper(kit$locus)]
+	Data$hdata <- Data$hdata[toupper(kit$locus)]
+   }
+  generateEPG(typingKit=kitname,alleleList=Data$adata,peakHeightList=Data$hdata, locusVector=names(Data$adata),sampleName=sname, drawBoxPlots=FALSE, drawPeaks=TRUE)
  }
 }
 
