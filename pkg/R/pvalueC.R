@@ -1,5 +1,15 @@
+#' @title pvalueC
+#' @author Oyvind Bleka <Oyvind.Bleka.at.fhi.no>
+#' @description Calculates Tippet-p-value in C.
+#' @export
+#' @details This function calculates restricted sum for all values in LR.table greater than LR.observed and summing corresponding values in P.value.
+#' @param LR.suspect Observed LR to restrict sum on.
+#' @param LR.table matrix of all possible LR.
+#' @param P.table corresponding values to sum assigned in LR.table.
+#' @return Restriced sum from calculation.
 
-pvalue.machineC <- function( LR.suspect, LR.table, P.table ){
+
+pvalueC <- function( LR.suspect, LR.table, P.table ){
  prepare.input <- function( LR.table, P.table ) {
  #
  # Converting the tables of likelihood ratios and probabilities to lists,

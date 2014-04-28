@@ -1,22 +1,18 @@
-#This file will soon be exchanged by calling Oskar Hansson's package
+#' @title plotEPG
+#' @author Oyvind Bleka <Oyvind.Bleka.at.fhi.no>
+#' @description EPG plotter maintained by Oskar Hansson.
+#' @export
+#' @details Plots peak height with corresponding allele for a sample.
+#' @param Data List of adata- and hdata-elements.
+#' @param kit name of kit.
+#' @param sname label text.
 
-#Labelling points example:
-#plot(wt, mpg, main="Milage vs. Car Weight",
-#   xlab="Weight", ylab="Mileage", pch=18, col="blue")
-#text(wt, mpg, row.names(mtcars), cex=0.6, pos=4, col="red") 
 
-# TODO - Degradation method dependent degradation factor?
-# TODO - Kit dependent quant-rfu factor?
-# TODO - Automatically create info from GM panels etc?
-# TODO - Check offset. Do not mix actual bp with min range in marker range (panel/bins).
-#        Best so far: estimate the offset by taking the smallest ladder fragment i.e. 98.28.
-#        and round this to an integer (98) and subtract the number of base pair for that repeat i.e. 4*9=36,
-#        which gives an offset of 98-36 = 62 bp for D3. 
-
-# New in 05: Simple test kit added.
-# New in 04: ESX17 and corrected  an error in NGM.
-# New in 03: interlocus.balance # Test values
-
+#wrapper function for plotting mixture data as epg profile
+#Using Oskars functions. Put generateEPG here
+plotEPG <- function(Data,kit,sname="") {
+ #mixData is list with allele and height data. Only one sample!
+ #for selected sample:
 
 
 getKit<-function(kitNameOrIndex=NULL, showMessages=TRUE) {
@@ -579,3 +575,16 @@ generateEPG<-function(alleleList, peakHeightList, dyeVector=NULL, locusVector=NU
 		}
 	}
 }
+
+
+
+ print(kit)
+ if(all(length(unlist(Data$hdata))==0)) { 
+  gmessage(message="There is no height data in sample!",title="Error",icon="error")
+ } else if(all(length(unlist(Data$adata))==0)) {
+  gmessage(message="There is no allele data in sample!",title="Error",icon="error")
+ } else {
+  generateEPG(typingKit=kit,alleleList=Data$adata,peakHeightList=Data$hdata, locusVector=names(Data$adata),sampleName=sname, drawBoxPlots=FALSE, drawPeaks=TRUE)
+ }
+}
+

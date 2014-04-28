@@ -2,9 +2,9 @@
 \alias{deconvolve}
 \title{deconvolve}
 \usage{
-  deconvolve(nC, mixData, refData = NULL, condOrder = NULL,
-    locsel_Mix = NULL, locsel_Ref = NULL, eps = 100,
-    zeroMx = FALSE, threshT = 50, verbose = FALSE)
+deconvolve(nC, mixData, refData = NULL, condOrder = NULL,
+  locsel_Mix = NULL, locsel_Ref = NULL, eps = 100, zeroMx = FALSE,
+  threshT = 50, verbose = FALSE)
 }
 \arguments{
   \item{nC}{Number of contributors in model.}
@@ -46,59 +46,58 @@
   should be printed}
 }
 \value{
-  Optimized deconvolution model object.
-  \item{simpleList}{Table of loci independent
-  optimizations. Uses independent covariance structure.}
-  \item{pList}{Resultlist of optimized combinations,
-  mixture proportions and error-distances (MD).}
-  \item{locinames}{Name of loci in mixData}
-  \item{result1}{Tabled optimized results in format 1.}
-  \item{result2}{Tabled optimized results in format 2.}
-  \item{data}{All data used as input in analysis.}
-  \item{options}{Input parameters used in analysis.}
+Optimized deconvolution model object.
+\item{simpleList}{Table of loci independent optimizations.
+Uses independent covariance structure.}
+\item{pList}{Resultlist of optimized combinations, mixture
+proportions and error-distances (MD).}
+\item{locinames}{Name of loci in mixData}
+\item{result1}{Tabled optimized results in format 1.}
+\item{result2}{Tabled optimized results in format 2.}
+\item{data}{All data used as input in analysis.}
+\item{options}{Input parameters used in analysis.}
 }
 \description{
-  deconvolve is a linear deconvolution procedure for STR
-  DNA mixtures.
+deconvolve is a linear deconvolution procedure for STR DNA
+mixtures.
 }
 \details{
-  The procedure optimizes the mixture proportion
-  simultaneous with combined genotypes by assuming the STR
-  response variation as normal distributed. The criterion
-  for optimization is the error distance Mahalanobis
-  Distance (MD) between the fitting model and observed
-  responses.
+The procedure optimizes the mixture proportion simultaneous
+with combined genotypes by assuming the STR response
+variation as normal distributed. The criterion for
+optimization is the error distance Mahalanobis Distance
+(MD) between the fitting model and observed responses.
 
-  Conditioning on referenced genotypes is possible.
-  Selection of conditioned loci for each of the references
-  may be specified. Unobserved alleles from references will
-  be imputed as observed alleles with the input threshold
-  as the quantitative information. Non-selected or empty
-  observed loci will return NA as genotype combinations and
-  not treated in model.
+Conditioning on referenced genotypes is possible. Selection
+of conditioned loci for each of the references may be
+specified. Unobserved alleles from references will be
+imputed as observed alleles with the input threshold as the
+quantitative information. Non-selected or empty observed
+loci will return NA as genotype combinations and not
+treated in model.
 
-  The search strategy is called keepElite which optimizes
-  over all loci simultaniously by storing the 'eps' best
-  fitted combinations during the search. The function also
-  returns the optimized marginal result (each loci
-  optimized).
+The search strategy is called keepElite which optimizes
+over all loci simultaniously by storing the 'eps' best
+fitted combinations during the search. The function also
+returns the optimized marginal result (each loci
+optimized).
 
-  The covariance structures taking all loci into account
-  assumes a compound symmetry structure which takes the
-  number of alleles and peak heights into account (this
-  ensures 'proportion of variance').
+The covariance structures taking all loci into account
+assumes a compound symmetry structure which takes the
+number of alleles and peak heights into account (this
+ensures 'proportion of variance').
 
-  The user may choose whether combinations giving zero
-  mixture propotion (gives overfitting model) for any
-  contributors are accepted.
+The user may choose whether combinations giving zero
+mixture propotion (gives overfitting model) for any
+contributors are accepted.
 }
 \author{
-  Oyvind Bleka <Oyvind.Bleka.at.fhi.no>
+Oyvind Bleka <Oyvind.Bleka.at.fhi.no>
 }
 \references{
-  Tvedebrink,T, et.al.(2012). Identifying contributors of
-  DNA mixtures by means of quantitative information of STR
-  typing. Journal of Computational Biology, 19(7),887-902.
+Tvedebrink,T, et.al.(2012). Identifying contributors of DNA
+mixtures by means of quantitative information of STR
+typing. Journal of Computational Biology, 19(7),887-902.
 }
 \keyword{deconvolution,}
 \keyword{optimization}

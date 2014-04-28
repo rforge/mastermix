@@ -2,7 +2,7 @@
 \alias{genDataset}
 \title{genDataset}
 \usage{
-  genDataset(nC, popFreq, mu = 10000, sd = 1000)
+genDataset(nC, popFreq, mu = 10000, sd = 1000)
 }
 \arguments{
   \item{nC}{Number of contributors in model.}
@@ -17,17 +17,17 @@
   allele of a contributor.}
 }
 \value{
-  List with elements trueMx,mixData,refData
+List with elements trueMx,mixData,refData
 }
 \description{
-  genDataset samples a random mixture with Normal[+] peak
-  heights.
+genDataset samples a random mixture with Normal[+] peak
+heights.
 }
 \details{
-  Simple function for generating a random peak height
-  mixture distributed as normal positive truncated.
+Simple function for generating a random peak height mixture
+distributed as normal positive truncated.
 }
 \author{
-  Oyvind Bleka <Oyvind.Bleka.at.fhi.no>
+Oyvind Bleka <Oyvind.Bleka.at.fhi.no>
 }
 

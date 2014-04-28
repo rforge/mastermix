@@ -2,8 +2,8 @@
 \alias{getContrCombs}
 \title{getContrCombs}
 \usage{
-  getContrCombs(Alist, nC, symmetry = FALSE, refs = NULL,
-    condOrder = NULL, complete = TRUE)
+getContrCombs(Alist, nC, symmetry = FALSE, refs = NULL, condOrder = NULL,
+  complete = TRUE)
 }
 \arguments{
   \item{Alist}{Vector of possible alleles}
@@ -27,22 +27,21 @@
   combinations to fill the Alist.}
 }
 \value{
-  A matrix where each row represents a genotype
-  combination, while each column correspond to a
-  contributor
+A matrix where each row represents a genotype combination,
+while each column correspond to a contributor
 }
 \description{
-  getContrCombs is a helpfunction to specify all possible
-  combined genotypes for a give hypothesis.
+getContrCombs is a helpfunction to specify all possible
+combined genotypes for a give hypothesis.
 }
 \details{
-  Note: If a reference is unselected, it as numeric() in
-  its loci
+Note: If a reference is unselected, it as numeric() in its
+loci
 
-  The allele-names are coded with a ascii-symbol to have
-  threat more than 10-alleles in a loci.
+The allele-names are coded with a ascii-symbol to have
+threat more than 10-alleles in a loci.
 }
 \author{
-  Oyvind Bleka <Oyvind.Bleka.at.fhi.no>
+Oyvind Bleka <Oyvind.Bleka.at.fhi.no>
 }
 
