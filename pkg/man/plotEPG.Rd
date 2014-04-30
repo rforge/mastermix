@@ -2,12 +2,12 @@
 \alias{plotEPG}
 \title{plotEPG}
 \usage{
-plotEPG(Data, kit, sname = "")
+plotEPG(Data, kitname, sname = "")
 }
 \arguments{
   \item{Data}{List of adata- and hdata-elements.}
 
-  \item{kit}{name of kit.}
+  \item{kitname}{name of kit.}
 
   \item{sname}{label text.}
 }
