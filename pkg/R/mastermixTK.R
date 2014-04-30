@@ -1,12 +1,11 @@
 ###
 #TODO
-#1) Legg inn 0.99 quantile. Beregn avstand (LR0-q99) distance
-#2) Databasesøk med LR
 
 ###########
 #Changelog#
 ###########
 
+#30.04.14 - Finished implemented datbase search
 #16.04.14 - Bugs: Fix invariant Locus-names,Handle if refData is empty
 #21.01.14 - Bugs found before deconvolving
 #20.01.14 - Quant-probability function contProb finished implemented (not inserted into GUI).
@@ -28,16 +27,16 @@
 mastermixTK = function() {
  #setwd("~/Dropbox/Forensic/MixtureProj/myDev/mastermix/R")
  #setwd("C:/Users/oebl/Dropbox/Forensic/MixtureProj/myDev/mastermix/R")
+ #setwd("C:/Users/oebl/Dropbox/Forensic/MixtureProj/myDev/examples")
  #setwd("D:/Dropbox/Forensic/MixtureProj/myDev/mastermix/R")
-
-# source("mastermixTK.R")
-# rm(list=ls()) #must be removed after debugging
- #size of main window
+ # source("mastermixTK.R")
+ #rm(list=ls()) #must be removed after debugging
 # source("plotEPG.R")
 # source("calcDOdistr.R")
 # source("deconvolve.R")
 # source("getContrCombs.R")
 
+ #size of main window
  mwH <- 1000
  mwW <- 1500
 
@@ -118,7 +117,7 @@ mastermixTK = function() {
   tab <- read.table(filename,header=TRUE,sep="\t",stringsAsFactors=FALSE)
   if(ncol(tab)==1) tab <- read.table(filename,header=TRUE,sep=",",stringsAsFactors=FALSE)
   if(ncol(tab)==1) tab <- read.table(filename,header=TRUE,sep=";",stringsAsFactors=FALSE)
-  return(tab)
+  return(tab) #need dataframe to keep allele-names correct!!
  }
 
 
@@ -191,10 +190,12 @@ mastermixTK = function() {
   return(Y)
  }
 
-
 #Function for database searching for given model in 
 doDBsearch <- function(LRopt,verbose=TRUE) {
   LRopt$LRfit <- calcLR(LRopt,doLR=FALSE,verbose=FALSE) #get need info of LRcalculation 
+#  assign("LRopt",LRopt,envir=mmTK)
+#  LRopt <- get("LRopt",envir=mmTK)
+
   print("Precalculation for database search...")
   LRfit <- LRopt$LRfit #need fittet LR to get ref-data in hypothesis
   locs <- names(LRfit) #get fitted loci (relevant)
@@ -207,41 +208,43 @@ doDBsearch <- function(LRopt,verbose=TRUE) {
   hpDB <- rep(1,M)
   hdDB <- rep(1,M)
   macDB <- rep(1,M)
+  nLocs <- rep(0,M) #number of locus used in calculation
   for(loc in locs) { #for each locus to consider in mixture
    Ei <- LRfit[[loc]]$evid #extract sample
    dblocind <- grep(toupper(loc),toupper(dblocs),fixed=TRUE)
    if(all(Ei==0) | length(dblocind)==0 )  next  #check if loci was calculated
    print(paste("Calculations for locus:",loc))
    maxC <- max(LRopt$uHp+length(LRopt$Hp),LRopt$uHd+length(LRopt$Hd))
-  
    subfreq <- popFreq[[loc]] #extract frequencies
    Ainfo <- names(subfreq) #extract allele-info
    #translate to genotypes
    Pinfo <- prim[1:length(Ainfo)]
    subDB <- dbData[,dblocind] #extract subset of Database
    uniqRef <- unique(subDB) #get unique genotypes
+   uniqRef <- uniqRef[!is.na(uniqRef)] #remove NA
    for(j in 1:length(uniqRef)) { #for each unique genotypes      
     rowind <- which(subDB==uniqRef[j]) #samples with this genotype
     DBreff <- Ainfo[uniqRef[j]%%Pinfo==0] #get allele-info
     if(length(DBreff)==1) DBreff <- rep(DBreff,2) #homozygote genotype
     hpref = c(DBreff,LRfit[[loc]]$refHp) #reff under hp
-
+    hdref = LRfit[[loc]]$refHd #reff under hd
     #quick calculation if Q-assignation
     if(LRopt$Qcalc) {
-     subfreq <- subfreq[names(subfreq)%in%unique(c(Ei,hpref))]
+     subfreq <- subfreq[names(subfreq)%in%unique(c(Ei,hpref,hdref))]
      subfreq <- c(subfreq ,1-sum(subfreq))
     }
     hp = likEvid(Repliste=Ei,T=hpref,V=NULL,x=LRopt$uHp,theta=LRopt$theta,prDHet=rep(LRopt$DOprob,maxC),prDHom=rep(LRopt$DOprob^2,maxC),prC=rep(LRopt$DIprob,maxC),freq=subfreq)
-    hd = likEvid(Repliste=Ei,T=LRfit[[loc]]$refHd,V=DBreff,x=LRopt$uHd,theta=LRopt$theta,prDHet=rep(LRopt$DOprob,maxC),prDHom=rep(LRopt$DOprob^2,maxC),prC=rep(LRopt$DIprob,maxC),freq=subfreq)
+    hd = likEvid(Repliste=Ei,T=hdref,V=DBreff,x=LRopt$uHd,theta=LRopt$theta,prDHet=rep(LRopt$DOprob,maxC),prDHom=rep(LRopt$DOprob^2,maxC),prC=rep(LRopt$DIprob,maxC),freq=subfreq)
     hpDB[rowind] <- hpDB[rowind]*hp
     hdDB[rowind] <- hdDB[rowind]*hd
     macDB[rowind] <- macDB[rowind] + sum(DBreff%in%Ei) #count number of fitting evidence
+    nLocs[rowind] <- nLocs[rowind] + 1
    } #end for each unique ref
   } #end for each locus
   lrDB <- log10(hpDB/hdDB) #get on other scale
   ord <- order(lrDB,decreasing=TRUE)
-  outD <- cbind(outD[ord],lrDB[ord],macDB[ord]) #extend
-  colnames(outD) <- c("Reference","log10LR","MAC")
+  outD <- cbind(outD[ord],lrDB[ord],macDB[ord],nLocs[ord]) #extend
+  colnames(outD) <- c("Reference","log10LR","MAC","nLocs")
   assign("DBsearch",outD,envir=mmTK)
 #  dbwin <- gwindow("Result of database search", visible=FALSE, width=mwW,height=mwH)
 #  gtable(outD,container=dbwin,multiple=TRUE) #create table
@@ -544,7 +547,7 @@ calcPvalue = function(LRRMlist,lrobs) {
    if(type=="db") { #importing database file
     popFreq <- get("popFreq",envir=mmTK) 
     if(is.null(popFreq)) {
-     gmessage("Population frequencies needs to be imported for database search",title="Error",icon="error")
+     gmessage("Population frequencies needs to be imported for database search",title="Error")
     } else {
      minFreq <- get("minFreq",envir=mmTK) #get assigned minFrequency
      #saving MEMORY by convert database here!
@@ -573,13 +576,13 @@ calcPvalue = function(LRRMlist,lrobs) {
       if(length(okSind)==0) next #if no samples exists
       newCol[okSind] <- 1 #init existing as 1. NA for missing allele-info
       doneEncode <- matrix(FALSE,ncol=2,nrow=length(okSind)) #matrix checking which we are finished with
+      Afreqs <- names(popFreq[[locind]]) #get allele-names. Update for each column
       for(k in 1:length(aind)) { #for each allele-column
-       Afreqs <- names(popFreq[[locind]]) #get allele-names. Update for each column
        for(j in 1:length(Afreqs)) { #for each unique allele in popFreq:
-        okAind <- which(subA[okSind,k]==Afreqs[j]) #find matching alleles in subA[okSind]
+        okAind <- which(subA[,k]==Afreqs[j]) #find matching alleles in subA[okSind]
         if(length(okAind)==0) next
         doneEncode[okAind,k] = TRUE #check that is finished
-        newCol[okSind][okAind] <- newCol[okSind][okAind] * prim[j] #multiply with primenumber
+        newCol[okSind][okAind] <- newCol[okSind][okAind]*prim[j] #multiply with primenumber
        } #end for each allele j
 
        #THREAT NEW ALLELES,MISSTYPOS ETC:
@@ -590,11 +593,11 @@ calcPvalue = function(LRRMlist,lrobs) {
         tmp <- popFreq[[locind]]
         popFreq[[locind]] <- c(tmp, rep(minFreq,length(newA)))
         names(popFreq[[locind]]) <- c(names(tmp),newA) #add unique
-        warning(paste("Allele(s)",newA,"was inserted with min. frequency",prettyNum(minFreq)))
+        print(paste0("In locus ",locsDB[i],": Allele(s) ",newA," was inserted with min. frequency ",prettyNum(minFreq)))
         for(j in 1:length(newA)) { #for each unique allele in popFreq:
-         okAind <- which(subA[okSind,k]==newA[j]) #find matching alleles in subA[okSind]
+         okAind <- which(subA[,k]==newA[j]) #find matching alleles in subA[okSind]
          if(length(okAind)==0) next
-         newCol[okSind][okAind] <- newCol[okSind][okAind] * prim[j] #multiply with primenumber
+         newCol[okSind][okAind] <- newCol[okSind][okAind] * prim[ which(names(popFreq[[locind]])==newA[j]) ] #multiply with EXTENDED primenumber
         } #end for each allele j
        } #end if not encoded 
       } #end for each column k
@@ -613,7 +616,8 @@ calcPvalue = function(LRRMlist,lrobs) {
      assign("popFreq",popFreq,envir=mmTK) #assign updated popFreq
      print(paste0("Database successfully imported with ",nrow(dbData)," samples."))
      tmp <- unlist(strsplit(proffile,"/",fixed=TRUE)) #just label the file
-     tab2b[2,3][] <- c(tab2b[2,3][], tmp[length(tmp)]) 
+#     tab2b[2,3][] <- c(tab2b[2,3][], tmp[length(tmp)])  #if applying existing
+     tab2b[2,3][] <- tmp[length(tmp)]
      enabled(tab2b[2,3]) <- FALSE #all is merged
     } #end if popFreq exist
    } else { 
@@ -692,7 +696,7 @@ calcPvalue = function(LRRMlist,lrobs) {
      gmessage(message="Database contained more than 10000 samples.\n Showing first 10000 samples only!")
      outD <- outD[1:10000,]
     }
-    dbwin <- gwindow("References in imported database", visible=FALSE, width=mwW,height=mwH)
+    dbwin <- gwindow("References in imported database", visible=FALSE,height=mwH)
     gtable(outD,container=dbwin,multiple=TRUE) #create table
     visible(dbwin) <- TRUE
    }
@@ -765,7 +769,7 @@ calcPvalue = function(LRRMlist,lrobs) {
      outD <- cbind(outD,newRow)
     }
     colnames(outD) = c("Allele",locs) 
-    dbwin <- gwindow("Population frequencies", visible=FALSE, width=mwW,height=mwH)
+    dbwin <- gwindow("Population frequencies", visible=FALSE,height=mwH)
     gtable(outD ,container=dbwin,multiple=TRUE) #create table
     visible(dbwin) <- TRUE
    }
@@ -1039,6 +1043,7 @@ calcPvalue = function(LRRMlist,lrobs) {
    #function for assigning information from GUI to new:
    #overwrites existing information in "LRopt"
    getLRoptions = function(locnames,mixSel,refSel,tab5a,tab5b) { #send locnames,#mixes,#refs
+    popLocs <- names(get("popFreq",envir=mmTK))  #get imported population frequencies. Needed for checking possible loci to calculate!
     nM <-length(mixSel)
     nR <-length(refSel)
     mixD = getData("mix")
@@ -1062,12 +1067,13 @@ calcPvalue = function(LRRMlist,lrobs) {
      }
     }
     #get selected loci of checked mixtures
-    for(nm in names(LRopt$Evidsel)) {  
-     mixind <- grep(nm,mixSel,fixed=TRUE) #get index in GUI
+    for(nm in names(LRopt$Evidsel)) {  #for each selected evidence
+     mixind <- grep(nm,mixSel,fixed=TRUE) #get mix-index in GUI
      subA <- names(mixD[[nm]]$adata) #get loci-names of selected mix-profile
      for(i in 1:length(subA)) { #for each locus in selected mix
       locind <- grep(subA[i],locnames,fixed=TRUE) #get loc-index of stain in GUI:
-      if(length(grep("AMEL",toupper(subA[i]),fixed=TRUE))==0 && svalue(tab5b[1+locind,1 + mixind]) )  LRopt$Evidsel[[nm]][i] <- TRUE
+      if(length(locind)==0) next 
+      if(length(grep(toupper(subA[i]),popLocs,fixed=TRUE))>0 && svalue(tab5b[1+locind,1 + mixind]) )  LRopt$Evidsel[[nm]][i] <- TRUE #locus was selected
      }
     }
     #get selected options:
@@ -1103,9 +1109,9 @@ calcPvalue = function(LRRMlist,lrobs) {
    evidnames <- names(LRopt$Evidsel)
    nM <- length(evidnames)
    for(ln in LRopt$locnames) { #for each locus
-    if(length(grep("AMEL",toupper(ln),fixed=TRUE))>0) next #skipped anyhow
-    if(verbose) print(paste("Calculating LR for loci ",ln,"...",sep=""))
     poplocind <-  grep(toupper(ln), toupper(names(popFreq)),fixed=TRUE)
+    if(length(poplocind)==0) next #skip not-existing in pop
+    if(verbose) print(paste("Calculating LR for loci ",ln,"...",sep=""))
     freq <- popFreq[[poplocind]] #take out frequeny
     if(is.null(freq)) next #no frequencies found for given allele
     freqQ <- freq #default it is all alleles
@@ -1166,7 +1172,7 @@ calcPvalue = function(LRRMlist,lrobs) {
     #insert missing allele in 'freq' if some are missing:
     newA <- allA[!allA%in%freqN] #new alleles
     if(length(newA)>0) {
-     warning(paste("Allele(s)",newA,"was inserted with min. frequency",prettyNum(minFreq)))
+     print(paste0("In locus ",ln,": Allele(s) ",newA," was inserted with min. frequency ",prettyNum(minFreq)))
      freq <- c(freq,rep(minFreq,length(newA)))
      freq <- freq/sum(freq) #normalize
      names(freq) <- c(freqN,newA)
@@ -1205,6 +1211,7 @@ calcPvalue = function(LRRMlist,lrobs) {
      } #end for each dropin
     } #end for each dropout
    } #end for each loci
+
    assign("popFreq",popFreq,envir=mmTK)  #assigning updated popFreq
    if(!doLR) return(LRfit)
 
@@ -1277,6 +1284,7 @@ calcPvalue = function(LRRMlist,lrobs) {
    #weight: must have both mixture and reference profiles
    #dbsearch: must have both mixture and database, reference profiles is optional
    #IF LRopt=NULL; get assigned values?
+   popLocs <- names(get("popFreq",envir=mmTK))  #get imported population frequencies. Needed for checking possible loci to calculate!
    mixD = getData("mix")
    refD = getData("ref") 
    nM = length(mixSel) #number of mix-profiles
@@ -1332,12 +1340,12 @@ calcPvalue = function(LRRMlist,lrobs) {
    for(nm in 1:nM) {
     tab5b[1,1 + nm] <- glabel(text=mixSel[nm],container=tab5b)
     subD <- mixD[[mixSel[nm]]] #select profile
-    if(nm==1) locnames <- toupper(names(subD$adata)) #get loc-names
-    for(i in 1:length(subD$adata)) {
+    if(nm==1) locnames <- toupper(names(subD$adata)) #get loc-names from first mixture!
+    for(i in 1:length(subD$adata)) { #for each locus
      locind <- grep(names(subD$adata)[i],locnames,fixed=TRUE) #get loc-index of stain:
      if(nm==1) tab5b[1+i,1] <- locnames[i] #insert loc-name
      tab5b[1+locind,1 + nm]  <- gcheckbox(text="",container=tab5b,checked=TRUE)
-     if(length(grep("AMEL",names(subD$adata)[i],fixed=TRUE))>0) enabled(tab5b[1+locind,1 + nm]) <- FALSE
+     if(length(grep(names(subD$adata)[i],popLocs,fixed=TRUE))==0) enabled(tab5b[1+locind,1 + nm]) <- FALSE #deactivate non-existing locus
     }
    }  
 
@@ -1347,7 +1355,8 @@ calcPvalue = function(LRRMlist,lrobs) {
      tab5b[1,1 + nM + nr] <- glabel(text=refSel[nr],container=tab5b) #name of reference
      subD <- refD[[refSel[nr]]] #select profile
      for(i in 1:length(subD$adata)) { #for each marker 
-      locind <- grep(names(subD$adata)[i],locnames,fixed=TRUE) #get loc-index of stain:
+      locind <- grep(toupper(names(subD$adata))[i],locnames,fixed=TRUE) #get loc-index of stain:
+      if(length(locind)==0) next #skip marker if not existing
       check <- TRUE
       if(length(subD$adata[[i]])==0) check <- FALSE
       tab5b[1+locind,1 + nM + nr]  <- gcheckbox(text="",container=tab5b,checked=check)
@@ -1460,7 +1469,7 @@ calcPvalue = function(LRRMlist,lrobs) {
    rr <- function(x) signif(x,acc) #user may specify
    LRtab <-  cbind(rownames(LRopt$LRtab),rr(LRopt$LRtab)) #format table for outprint
    colnames(LRtab) <- c("loci","Hp","Hd","LR")
-   tab6b[1:nrow(LRtab),1:4] <- gtable(LRtab,container=tab6b,multiple=FALSE)
+   tab6b[1:nrow(LRtab),1:4] <- gtable(LRtab,container=tab6b,multiple=FALSE,height=min(nL*22,500)) #plot LR-results
    tab6b[nrow(LRtab)+1,2] <- glabel("",container=tab6b)
    tab6b[nrow(LRtab)+2,2] <- glabel("Hp",container=tab6b)
    tab6b[nrow(LRtab)+2,3] <- glabel("Hd",container=tab6b)
@@ -1613,7 +1622,7 @@ tab7c = glayout(spacing=1,container=tab7,expand=TRUE) #storing result
      gmessage(message="Database contained more than 10000 samples.\n Showing first 10000 ranked samples only!")
      ord <- ord[1:10000] #only first 10000 shown
     }
-    tab7b[1,1] <- gtable(DBsearch[ord,] ,container=tab7b,multiple=TRUE,width=mwW,height=mwH-2*mwH/3,do.autoscroll=TRUE,noRowsVisible=TRUE) #add to frame
+    tab7b[1,1] <- gtable(DBsearch[ord,] ,container=tab7b,multiple=TRUE,height=mwH-2*mwH/3,do.autoscroll=TRUE,noRowsVisible=TRUE) #add to frame
    }
    #create table in tab4a
    tab7b[1,1] <- glabel(text="",container=tab7b)
