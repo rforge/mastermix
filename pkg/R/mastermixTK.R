@@ -5,6 +5,7 @@
 #Changelog#
 ###########
 
+#05.05.14 - Updated revival of project work.
 #30.04.14 - Finished implemented datbase search
 #16.04.14 - Bugs: Fix invariant Locus-names,Handle if refData is empty
 #21.01.14 - Bugs found before deconvolving
@@ -16,7 +17,7 @@
 #' @author Oyvind Bleka <Oyvind.Bleka.at.fhi.no>
 #' @description mastermixTK is a GUI for the function mastermix for performing linear deconvolution procedure of STR DNA mixtures.
 #' @export
-#' @usage mastermixTK()
+#' @usage mastermixTK(envirfile=NULL)
 #' @details The function is a graphical layer for the function mastermix. See ?mastermix for more information.
 #' 
 #' The structure of profiles is: Data[['samplename']]$adata[['locusname']] for allele information and Data[['samplename']]$hdata[['locusname']] for allele height information (if any)
@@ -24,17 +25,18 @@
 #' @keywords deconvolution, optimization
 
 
-mastermixTK = function() {
- #setwd("~/Dropbox/Forensic/MixtureProj/myDev/mastermix/R")
- #setwd("C:/Users/oebl/Dropbox/Forensic/MixtureProj/myDev/mastermix/R")
  #setwd("C:/Users/oebl/Dropbox/Forensic/MixtureProj/myDev/examples")
+ #setwd("C:/Users/oebl/Dropbox/Forensic/MixtureProj/myDev/mastermix/R")
  #setwd("D:/Dropbox/Forensic/MixtureProj/myDev/mastermix/R")
- # source("mastermixTK.R")
+ # source("mastermixTK.R");mastermixTK()
  #rm(list=ls()) #must be removed after debugging
-# source("plotEPG.R")
-# source("calcDOdistr.R")
-# source("deconvolve.R")
-# source("getContrCombs.R")
+ #source("plotEPG.R")
+ #source("calcDOdistr.R")
+ #source("deconvolve.R")
+ #source("getContrCombs.R")
+
+mastermixTK = function(envirfile=NULL) {
+ #input: envirfile - a file to saved environment of a project
 
  #size of main window
  mwH <- 1000
@@ -44,34 +46,39 @@ mastermixTK = function() {
  options(guiToolkit="tcltk")
 
  #Required in deconvolve-function:
- require(gtools)
- require(MASS)
  require(gWidgetstcltk) #requires only gWidgets also:
 
  #version:
  version = 1
 
+
  #create own environment within mastermixTK - function (i.e. env-object is enclosed from this function)
- mmTK = new.env()
- #assign("name",1,envir=mmTK) #assign to environment
- #get(name,envir=mmTK) #grab from environment
- #save(mmTK,filename="projectname.Rdata") #can save environment to file
-
- #initialize environment variables
- assign("workdir",NULL,envir=mmTK) #assign working directory to mmTK-environment
- assign("freqfolder",NULL,envir=mmTK) #assign freqfolder to mmTK-environment
- assign("kits",NULL,envir=mmTK) #assign kitList to mmTK-environment
- assign("popFreq",NULL,envir=mmTK) #assign popFreq to mmTK-environment
- assign("mixData",NULL,envir=mmTK) #assign mixdata to mmTK-environment
- assign("refData",NULL,envir=mmTK) #assign refdata to mmTK-environment
- assign("dbData",NULL,envir=mmTK) #assign dbData: matrix referenceDatabase to mmTK-environment (encoded)
- assign("DBsearch",NULL,envir=mmTK) #assign database results
- assign("deconvlist",NULL,envir=mmTK) #assign deconvolved result to mmTK-environment
- assign("LRopt",NULL,envir=mmTK) #assign LR options + extended with result to mmTK-environment
- assign("minFreq",5/2000,envir=mmTK) #assign minFrequency. Assuming N=1000 samples
-
+ if(is.null(envirfile)) {
+  mmTK = new.env() #create new envornment object
+  #initializing environment variables
+  assign("workdir",NULL,envir=mmTK) #assign working directory to mmTK-environment
+  assign("freqfolder",NULL,envir=mmTK) #assign freqfolder to mmTK-environment
+  assign("kits",NULL,envir=mmTK) #assign kitList to mmTK-environment
+  assign("selPopKitName",NULL,envir=mmTK) #selected kit and population for popFreq
+  assign("popFreq",NULL,envir=mmTK) #assign popFreq to mmTK-environment
+  assign("mixData",NULL,envir=mmTK) #assign mixdata to mmTK-environment
+  assign("refData",NULL,envir=mmTK) #assign refdata to mmTK-environment
+  assign("dbData",NULL,envir=mmTK) #assign dbData: matrix referenceDatabase to mmTK-environment (encoded)
+  assign("DBsearch",NULL,envir=mmTK) #assign database results
+  assign("deconvlist",NULL,envir=mmTK) #assign deconvolved result to mmTK-environment
+  assign("LRopt",NULL,envir=mmTK) #assign LR options (weighting)
+  assign("LRoptDB",NULL,envir=mmTK) #assign LR options (database)
+  assign("freqSize",1000,envir=mmTK) #Assuming N=1000 samples
+ } else {
+  load(envirfile) #loading environment
+ }
 
  prim = c(2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113, 127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251,257,263, 269,271,277,281,283,293,307,311,313,317,331,337,347,349,353,359,367,373,379,383,389,397,401,409,419,421, 431,433,439,443,449,457,461,463,467,479,487,491,499,503,509,521,523,541,547,557,563,569,571,577,587,593, 599,601,607,613,617,619,631,641,643,647,653,659,661,673,677,683,691,701,709,719,727,733,739,743,751,757, 761,769,773,787,797,809,811,821,823,827,829,839,853,857,859,863,877,881,883,887,907,911,919,929,937,941, 947,953,967,971,977,983,991,997,1009,1013,1019,1021,1031,1033,1039,1049,1051,1061,1063,1069,1087,1091,1093, 1097,1103,1109,1117,1123,1129,1151,1153,1163,1171,1181,1187,1193,1201,1213,1217,1223,1229,1231,1237,1249, 1259,1277,1279,1283,1289,1291,1297,1301,1303,1307,1319,1321,1327,1361,1367,1373,1381,1399,1409,1423,1427, 1429,1433,1439,1447,1451,1453,1459,1471,1481,1483,1487,1489,1493,1499,1511,1523,1531,1543,1549) 
+
+ #minimum frequency
+ getminFreq = function(size) {
+  return(5/(2*size))
+ }
 
  #Function to get data from environment
  getData = function(type) {
@@ -80,6 +87,13 @@ mastermixTK = function() {
    if(type=="ref") Data <- get("refData",envir=mmTK) #assign kit to mmTK-environment 
    if(type=="db") Data <- get("dbData",envir=mmTK) #assign kit to mmTK-environment 
    return(Data)
+ }
+
+ #function for inserting mix/ref/db-names into existing gcheckboxgroup
+ restoreCheckbox = function(type) {
+  subD <- getData(type)
+  if(!is.null(subD)) { return( names(subD))
+  } else { return(numeric()) }
  }
 
  #Load kit with allelefreq-info from filefolder:
@@ -120,6 +134,16 @@ mastermixTK = function() {
   return(tab) #need dataframe to keep allele-names correct!!
  }
 
+ #save result table to file:
+ saveTable = function(tab,sep="txt") {
+  tabfile  = gfile(text="Save table",type="save") #csv is correct format!
+  if(!is.na(tabfile)) {
+   if(length(unlist(strsplit(tabfile,"\\.")))==1) tabfile = paste0(tabfile,".",sep)
+   if(sep=="txt" | sep=="tab") write.table(tab,file=tabfile,quote=FALSE,sep="\t",row.names=FALSE) 
+   if(sep=="csv") write.table(tab,file=tabfile,quote=FALSE,sep=",",row.names=FALSE) 
+   print(paste("Table saved in ",tabfile,sep=""))
+  }
+ } #end file
 
  strsplit2 <- function(x,spl) {
   if(nchar(x)==0) return("")
@@ -170,7 +194,7 @@ mastermixTK = function() {
   sind = grep("sample",tolower(cn),fixed=TRUE) #sample col-ind
   A_ind = grep("allele",tolower(cn),fixed=TRUE) #allele col-ind
   H_ind = grep("height",tolower(cn),fixed=TRUE) #height col-ind
-  ln = toupper(unique(X[,lind])) #locus names: Convert to upper case
+  ln = unique(toupper(X[,lind])) #locus names: Convert to upper case
   sn = unique(X[,sind]) #sample names
   I = length(ln)
   Y = list() #insert non-empty characters:
@@ -190,62 +214,69 @@ mastermixTK = function() {
   return(Y)
  }
 
-#Function for database searching for given model in 
+#Function for database searching for given model in LRsetup:
+#should merge database samples with same locus to save calculations!
 doDBsearch <- function(LRopt,verbose=TRUE) {
   LRopt$LRfit <- calcLR(LRopt,doLR=FALSE,verbose=FALSE) #get need info of LRcalculation 
-#  assign("LRopt",LRopt,envir=mmTK)
-#  LRopt <- get("LRopt",envir=mmTK)
+  assign("LRoptDB",LRopt,envir=mmTK) #store
+#  LRopt <- get("LRoptDB",envir=mmTK)
+   maxC <- max(LRopt$uHp+length(LRopt$Hp),LRopt$uHd+length(LRopt$Hd))
 
   print("Precalculation for database search...")
   LRfit <- LRopt$LRfit #need fittet LR to get ref-data in hypothesis
   locs <- names(LRfit) #get fitted loci (relevant)
   popFreq <-  get("popFreq",envir=mmTK)[locs] #extract relevant loci
+  dbData <- getData("db") #get reference database(s)
+  dbSel <- names(dbData)
 
-  dbData <- getData("db") #get reference database
-  dblocs <- toupper(colnames(dbData)) #get database locs
-  outD <- rownames(dbData) #sample names are characters
-  M <- nrow(dbData) #number of samples in database
-  hpDB <- rep(1,M)
-  hdDB <- rep(1,M)
-  macDB <- rep(1,M)
-  nLocs <- rep(0,M) #number of locus used in calculation
+  outD <- nLocs <- macDB <- lrDB <- numeric() #variables to store results of all databases
   for(loc in locs) { #for each locus to consider in mixture
-   Ei <- LRfit[[loc]]$evid #extract sample
-   dblocind <- grep(toupper(loc),toupper(dblocs),fixed=TRUE)
-   if(all(Ei==0) | length(dblocind)==0 )  next  #check if loci was calculated
-   print(paste("Calculations for locus:",loc))
-   maxC <- max(LRopt$uHp+length(LRopt$Hp),LRopt$uHd+length(LRopt$Hd))
-   subfreq <- popFreq[[loc]] #extract frequencies
-   Ainfo <- names(subfreq) #extract allele-info
-   #translate to genotypes
-   Pinfo <- prim[1:length(Ainfo)]
-   subDB <- dbData[,dblocind] #extract subset of Database
-   uniqRef <- unique(subDB) #get unique genotypes
-   uniqRef <- uniqRef[!is.na(uniqRef)] #remove NA
-   for(j in 1:length(uniqRef)) { #for each unique genotypes      
-    rowind <- which(subDB==uniqRef[j]) #samples with this genotype
-    DBreff <- Ainfo[uniqRef[j]%%Pinfo==0] #get allele-info
-    if(length(DBreff)==1) DBreff <- rep(DBreff,2) #homozygote genotype
-    hpref = c(DBreff,LRfit[[loc]]$refHp) #reff under hp
-    hdref = LRfit[[loc]]$refHd #reff under hd
-    #quick calculation if Q-assignation
-    if(LRopt$Qcalc) {
-     subfreq <- subfreq[names(subfreq)%in%unique(c(Ei,hpref,hdref))]
-     subfreq <- c(subfreq ,1-sum(subfreq))
+    print(paste("Calculations for locus:",loc))
+    Ei <- LRfit[[loc]]$evid #extract sample
+    subfreq <- popFreq[[loc]] #extract frequencies
+    Ainfo <- names(subfreq) #extract allele-info
+    Pinfo <- prim[1:length(Ainfo)]
+    subDB <- numeric()
+    for(dsel in dbSel) { #for all databases
+     subD <- dbData[[dsel]]
+     if(loc==locs[1]) {
+      outD  <- c(outD,rownames(subD)) #sample names will be character
+      M <- nrow(subD) #number of samples in database  
+      nLocs <- c(nLocs,rep(0,M))
+      macDB <- c(macDB,rep(0,M))
+      lrDB <- c(lrDB,rep(0,M))
+     }
+     dblocs <- toupper(colnames(subD)) #get database locs
+     dblocind <- grep(toupper(loc),toupper(dblocs),fixed=TRUE)
+     if(all(Ei==0) | length(dblocind)==0 )  next  #check if loci was calculated
+     #translate to genotypes
+     subDB <- c(subDB,subD[,dblocind]) #merge info of databases
     }
-    hp = likEvid(Repliste=Ei,T=hpref,V=NULL,x=LRopt$uHp,theta=LRopt$theta,prDHet=rep(LRopt$DOprob,maxC),prDHom=rep(LRopt$DOprob^2,maxC),prC=rep(LRopt$DIprob,maxC),freq=subfreq)
-    hd = likEvid(Repliste=Ei,T=hdref,V=DBreff,x=LRopt$uHd,theta=LRopt$theta,prDHet=rep(LRopt$DOprob,maxC),prDHom=rep(LRopt$DOprob^2,maxC),prC=rep(LRopt$DIprob,maxC),freq=subfreq)
-    hpDB[rowind] <- hpDB[rowind]*hp
-    hdDB[rowind] <- hdDB[rowind]*hd
-    macDB[rowind] <- macDB[rowind] + sum(DBreff%in%Ei) #count number of fitting evidence
-    nLocs[rowind] <- nLocs[rowind] + 1
-   } #end for each unique ref
-  } #end for each locus
-  lrDB <- log10(hpDB/hdDB) #get on other scale
+    uniqRef <- unique(subDB) #get unique genotypes
+    uniqRef <- uniqRef[!is.na(uniqRef)] #remove NA
+
+    for(j in 1:length(uniqRef)) { #for each unique genotypes      
+     rowind <- which(subDB==uniqRef[j]) #samples with this genotype
+     DBreff <- Ainfo[uniqRef[j]%%Pinfo==0] #get allele-info
+     if(length(DBreff)==1) DBreff <- rep(DBreff,2) #homozygote genotype
+     hpref = c(DBreff,LRfit[[loc]]$refHp) #reff under hp
+     hdref = LRfit[[loc]]$refHd #reff under hd
+     #quick calculation if Q-assignation
+     if(LRopt$Qcalc) {
+      subfreq <- subfreq[names(subfreq)%in%unique(c(Ei,hpref,hdref))]
+      subfreq <- c(subfreq ,1-sum(subfreq))
+     }
+     hp = likEvid(Repliste=Ei,T=hpref,V=NULL,x=LRopt$uHp,theta=LRopt$theta,prDHet=rep(LRopt$DOprob,maxC),prDHom=rep(LRopt$DOprob^2,maxC),prC=rep(LRopt$DIprob,maxC),freq=subfreq)
+     hd = likEvid(Repliste=Ei,T=hdref,V=DBreff,x=LRopt$uHd,theta=LRopt$theta,prDHet=rep(LRopt$DOprob,maxC),prDHom=rep(LRopt$DOprob^2,maxC),prC=rep(LRopt$DIprob,maxC),freq=subfreq)
+     lrDB[rowind] <- lrDB[rowind] + log10(hp/hd)
+     macDB[rowind] <- macDB[rowind] + sum(DBreff%in%Ei) #count number of fitting evidence in compound evidence
+     nLocs[rowind] <- nLocs[rowind] + 1
+    } #end for each unique ref
+   } #end for each locus
   ord <- order(lrDB,decreasing=TRUE)
-  outD <- cbind(outD[ord],lrDB[ord],macDB[ord],nLocs[ord]) #extend
-  colnames(outD) <- c("Reference","log10LR","MAC","nLocs")
-  assign("DBsearch",outD,envir=mmTK)
+  result <- cbind(outD[ord],lrDB[ord],macDB[ord],nLocs[ord]) #extend
+  colnames(result) <- c("Reference","log10LR","MAC","nLocs")
+  assign("DBsearch",result,envir=mmTK)
 #  dbwin <- gwindow("Result of database search", visible=FALSE, width=mwW,height=mwH)
 #  gtable(outD,container=dbwin,multiple=TRUE) #create table
 #  visible(dbwin) <- TRUE
@@ -329,7 +360,46 @@ calcPvalue = function(LRRMlist,lrobs) {
 ###########################GUI#####################################
 ###################################################################
 
-###########GUI WINDOW STARTS#########
+ #print LR model in guitab-layout:
+   printModel = function(LRopt,guitab) { #function for plotting function
+    nM <- length(LRopt$Evidsel)
+    nonHdcon <- LRopt$Hp[!LRopt$Hp%in%LRopt$Hd] #get possible tippets
+    leftHp <- LRopt$Hp[LRopt$Hp%in%LRopt$Hd] #get possible tippets
+    nNotHd <- length(nonHdcon) #number of possible tippets
+    nHp <- length(LRopt$Hp)
+    nleftHp <- length(leftHp)#nHp-nNotHd #non-tippets
+    nHd <- length(LRopt$Hd)
+    guitab[1,1] <- glabel(text="Evidence(s):",container=guitab)
+    for(nm in 1:nM) {
+     guitab[1+nm,1] <- glabel(text=names(LRopt$Evidsel)[nm],container=guitab)
+    }
+    guitab[2+nM,1] <- glabel(text="",container=guitab) #space
+    guitab[3+nM,1] <- glabel(text="Contributor(s) under Hp:",container=guitab)
+    if(nNotHd>0) {
+      guitab[4+nM,1] <- gradio(items=nonHdcon,container=guitab,checked=FALSE)
+    }
+    if(nleftHp>0) {
+      guitab[5+nM,1] <- gradio(items=leftHp,container=guitab,checked=FALSE)
+      enabled(guitab[5+nM,1]) <- FALSE
+    }
+    guitab[6+nM,1] <- glabel(text="",container=guitab) #space
+    guitab[7+nM,1] <- glabel(text="Contributor(s) under Hd:",container=guitab)
+    if(nHd>0) {
+     guitab[8+nM,1] <- gradio(items=LRopt$Hd,container=guitab,checked=FALSE)
+     enabled(guitab[8+nM,1]) <- FALSE
+    }
+    guitab[9+nM,1] <- glabel(text="",container=guitab) #space
+    guitab[10+nM,1] <- glabel(text="",container=guitab) #space
+   
+    #Parameter selection:
+    guitab[11+nM,1] <- glabel(text="Parameters:",container=guitab)
+    guitab[12+nM,1] <- glabel(text=paste("#unknowns (Hp):",LRopt$uHp),container=guitab)
+    guitab[13+nM,1] <- glabel(text=paste("#unknowns (Hd):",LRopt$uHd),container=guitab)
+    guitab[14+nM,1] <- glabel(text=paste("Drop-out prob: ",LRopt$DOprob),container=guitab)
+    guitab[15+nM,1] <- glabel(text=paste("Drop-in prob: ",LRopt$DIprob),container=guitab)
+    guitab[16+nM,1] <- glabel(text=paste("Theta:",LRopt$theta),container=guitab)
+    guitab[17+nM,1] <- glabel(text=paste("Q-assignation:",LRopt$Qcalc),container=guitab)
+   }
 
  #Menu bar file-lists:
  f_setwd = function(h,...) {
@@ -340,12 +410,17 @@ calcPvalue = function(LRRMlist,lrobs) {
   }
  }
  f_openproj = function(h,...) {
-  projfile = gfile(text="Open project",type="open")
-  if(!is.na(projfile)) load(projfile) #load environment
- }
+  projfile = gfile(text="Open project",type="open", filter=list("Project"=list(patterns=list("*.Rdata"))))
+  if(!is.na(projfile)) {
+   dispose(mainwin)
+   mastermixTK(projfile) #send environment into program
+  }
+	 }
  f_saveproj = function(h,...) {
   projfile = gfile(text="Save project",type="save")
   if(!is.na(projfile)) {
+   if(length(unlist(strsplit(projfile,"\\.")))==1) projfile = paste0(projfile,".Rdata")
+   print(sapply(mmTK,object.size)/1e6)
    save(mmTK,file=projfile) #save environment
    print(paste("Project saved in ",projfile,sep=""))
   }
@@ -354,6 +429,7 @@ calcPvalue = function(LRRMlist,lrobs) {
   ubool <- gconfirm("Do you want to save project?",title="Quit Program",icon="info")
   if(svalue(ubool)) {
    savefile <- gfile(text="Save file",type="save")
+   if(length(unlist(strsplit(savefile ,"\\.")))==1) savefile = paste0(savefile ,".Rdata")
    save(mmTK,file=savefile) 
    print(paste("Project saved in ",savefile,sep=""))
   } else { 
@@ -361,6 +437,9 @@ calcPvalue = function(LRRMlist,lrobs) {
   }
   dispose(mainwin) #remove window
  }
+
+###########GUI WINDOW STARTS#########
+
  #Menu bar - tags
  mblst = list( #project saving and so on
   File=list(  
@@ -379,12 +458,6 @@ calcPvalue = function(LRRMlist,lrobs) {
  wd=get("workdir",envir=mmTK) #assign working directory to mmTK-environment
  if(!is.null(wd)) setwd(wd)
  
- #tmp
- #User should be able to select kit and population in tab
-#  kitSel=1
-#  popSel=1
- 
-
  #Main window:
  spc <- 10
  mainwin <- gwindow(paste("Mixture analysis Tool v",version,sep=""), visible=FALSE, width=mwW,height=mwH)
@@ -484,23 +557,19 @@ calcPvalue = function(LRRMlist,lrobs) {
 
   #load/save profiles
   f_openprof = function(h,...) {
-   proffile = gfile(text="Open profile",type="open")
+   # proffile = gfile(text=paste("Open profile",sep=""),type="open")
+    proffile = gfile(text="Open profile",type="open",filter=list("text"=list(patterns=list("*.txt","*.csv","*.tab"))))
     if(!is.na(proffile)) {
-    Data = tableReader(proffile) #load profile
-    print(Data)
-    Data = sample_tableToList(Data) #convert from table to list
-    setEntryDataGUI(Data,names(Data)[1]) #set imported profile to GUI
-   }
+     Data = tableReader(proffile) #load profile
+     print(Data)
+     Data = sample_tableToList(Data) #convert from table to list
+     setEntryDataGUI(Data,names(Data)[1]) #set imported profile to GUI
+    }
   }
   f_saveprof = function(h,...) {
-   proffile = gfile(text="Save project",type="save")
-   if(!is.na(proffile)) {
     Data = getEntryDataGUI(asList=FALSE) #get profile data as table
     Data = sample_listToTable(Data) #convert from table to list
-    print(Data)
-    write.table(Data,file=proffile,quote=FALSE,sep=",",row.names=FALSE) #load environment
-    print(paste("Profile saved in ",proffile,sep=""))
-   }
+    saveTable(Data,"csv")
   }
 
   #Layout2
@@ -532,10 +601,11 @@ calcPvalue = function(LRRMlist,lrobs) {
  #a) button for loading kits from directory:
  f_loadkd = function(h,...) { loadKitList(freqpath=get("freqfolder",envir=mmTK)); }
 
- #b) load/save profiles/database
+ #b) load/save profiles/database: Supports any filetype
  f_importprof = function(h,...) {
   type=h$action #get type of profile
-  proffile = gfile(text=paste("Open ",type,"-file",sep=""),type="open",filter=list("text"=list(patterns=list("*.txt","*.csv","*.tab"))))
+#  proffile = gfile(text=paste("Open ",type,"-file",sep=""),type="open",filter=list("text"=list(patterns=list("*.txt","*.csv","*.tab"))))
+  proffile = gfile(text=paste("Open ",type,"-file",sep=""),type="open")
   if(!is.na(proffile)) {
    Data = tableReader(proffile) #load profile
    print("Raw fil import")
@@ -549,7 +619,7 @@ calcPvalue = function(LRRMlist,lrobs) {
     if(is.null(popFreq)) {
      gmessage("Population frequencies needs to be imported for database search",title="Error")
     } else {
-     minFreq <- get("minFreq",envir=mmTK) #get assigned minFrequency
+     minFreq <- getminFreq(get("freqSize",envir=mmTK)) #get assigned minFrequency
      #saving MEMORY by convert database here!
      #Data <- dbToGenoTable(Data) #convert database table to genotype matrix
 
@@ -562,12 +632,12 @@ calcPvalue = function(LRRMlist,lrobs) {
      locsDB <- unique(Data[,lind]) #unique markers in DB
      locsPop <- toupper(names(popFreq)) #markers in population
      sn <- unique(Data[,sind]) #unique samples in DB
-     dbData <- numeric() #encoded reference table
-     dbDatalocs <- numeric() #locus in dbData
+     newData <- numeric() #encoded reference table
+     dbDatalocs <- numeric() #locus in newData
      for(i in 1:length(locsDB)) { #for each marker in DB:
       locind <- grep(toupper(locsDB[i]),toupper(names(popFreq)),fixed=TRUE) #get position in popFreq
       if(length(locind)==0) next #if locus not existing in popFreq
-      newCol <- rep(NA,length(sn)) #new column in dbData
+      newCol <- rep(NA,length(sn)) #new column in newData
       subA <- Data[Data[,lind]==locsDB[i],aind] #extract allele data with matching marker
       subS <- Data[Data[,lind]==locsDB[i],sind] #extract sample names with matching marker
       isHom <- which(subA[,2]=="" | is.na(subA[,2])) #if homozygote assignation:
@@ -602,7 +672,7 @@ calcPvalue = function(LRRMlist,lrobs) {
        } #end if not encoded 
       } #end for each column k
       dbDatalocs <- c(dbDatalocs,toupper(names(popFreq)[locind])) #all locus
-      dbData <- cbind(dbData,newCol) #add column
+      newData <- cbind(newData,newCol) #add column
      } #end for each locus i
    
      #RESCALE popFreq?
@@ -610,15 +680,24 @@ calcPvalue = function(LRRMlist,lrobs) {
       popFreq[[i]] <- popFreq[[i]]/sum(popFreq[[i]])
      }
      print("popFreq was normalized")
-     colnames(dbData) <- dbDatalocs
-     rownames(dbData) <- sn #insert sample names
+     colnames(newData) <- dbDatalocs
+     rownames(newData) <- sn #insert sample names
+     print(paste0("Database successfully imported with ",nrow(newData)," samples."))
+
+     tmp <- unlist(strsplit(proffile,"/",fixed=TRUE)) #just label the file
+     fname <- tmp[length(tmp)] #get filename
+     fname <- unlist(strsplit(fname,"\\."))[1]
+
+     dbData <- get("dbData",envir=mmTK) #get already existing databases
+     if(is.null(dbData)) dbData <- list() #create list-object
+     dbData[[fname]] <- newData #add database to list
+
      assign("dbData",dbData,envir=mmTK) #store matrix in environment for later use
      assign("popFreq",popFreq,envir=mmTK) #assign updated popFreq
-     print(paste0("Database successfully imported with ",nrow(dbData)," samples."))
-     tmp <- unlist(strsplit(proffile,"/",fixed=TRUE)) #just label the file
-#     tab2b[2,3][] <- c(tab2b[2,3][], tmp[length(tmp)])  #if applying existing
-     tab2b[2,3][] <- tmp[length(tmp)]
-     enabled(tab2b[2,3]) <- FALSE #all is merged
+     tab2b[2,3][] <- names(dbData)
+#     tab2b[2,3][] <- c(tab2b[2,3][],fname)  #if applying existing
+#     tab2b[2,3][] <- tmp[length(tmp)] #use latest only
+#     enabled(tab2b[2,3]) <- FALSE #all is considered in the database search
     } #end if popFreq exist
    } else { 
     Data = sample_tableToList(Data) #convert from table to list 
@@ -644,9 +723,9 @@ calcPvalue = function(LRRMlist,lrobs) {
  #c) 
  #prints profiles and EPG or a viewData-table
  f_viewdata = function(h,...) {
-   kit <- svalue(tab2a[2,1]) #get kit name. Must be same name as in generateEPG
-   selD <- getData(h$action) #get mixture data
+   selD <- getData(h$action) #get selected data
    if(h$action=="mix") { #call on epg-function for each mixtures
+    kit <- svalue(tab2a[2,1]) #get kit name. Must be same name as in generateEPG
     mixSel <- svalue(tab2b[2,1])  #get selected mixtures
     for(msel in mixSel) {
      subD <- selD[[msel]]
@@ -668,38 +747,43 @@ calcPvalue = function(LRRMlist,lrobs) {
      print(selD[[rsel]])
     }
    }
-   if(h$action=="db") { 
+   if(h$action=="db") {  #view imported databases
+    dbSel <- svalue(tab2b[2,3])  #get selected database
     popFreq <- get("popFreq",envir=mmTK)
-    dblocs <- toupper(colnames(selD)) #get database locs
-    outD <- rownames(selD) #will be character
-    for(i in 1:length(dblocs)) { #for each locus     
-     Ainfo <- names(unlist(popFreq[[dblocs[i]]])) #extract allele-info
-     #translate to genotypes
-     Pinfo <- prim[1:length(Ainfo)]
-     G = t(as.matrix(expand.grid(rep(list(Ainfo,Ainfo )))))
-     GP = t(as.matrix(expand.grid(rep(list(Pinfo,Pinfo )))))
-     keep = GP[2,]>=GP[1,] #unique genotypes
-     G <- G[,keep]  #store genotypes
-     G <- paste0(G[1,],paste0("/",G[2,]))
-     GP <- GP[,keep]  #store genotypes
-     GP <- GP[1,]*GP[2,]
-     newRow <- rep(NA,nrow(selD)) 
-     for(j in 1:length(GP)) { #for each genotype
-      rowind <- which(selD[,i]==GP[j]) #samples with this genotype
-      if(length(rowind)==0) next
-      newRow[rowind] <- G[j]
-     } #end for each allele
-     outD <- cbind(outD,newRow) #extend
-    }
-    colnames(outD) <- c("Reference",dblocs)
-    if(nrow(outD)>10000) {
-     gmessage(message="Database contained more than 10000 samples.\n Showing first 10000 samples only!")
-     outD <- outD[1:10000,]
-    }
-    dbwin <- gwindow("References in imported database", visible=FALSE,height=mwH)
-    gtable(outD,container=dbwin,multiple=TRUE) #create table
-    visible(dbwin) <- TRUE
-   }
+    for(dsel in dbSel) { #for each selected databases
+     subD <- selD[[dsel]]
+     dblocs <- toupper(colnames(subD)) #get database locs
+     outD <- rownames(subD) #will be character
+     for(i in 1:length(dblocs)) { #for each locus     
+      Ainfo <- names(unlist(popFreq[[dblocs[i]]])) #extract allele-info
+      #translate to genotypes
+      Pinfo <- prim[1:length(Ainfo)]
+      G = t(as.matrix(expand.grid(rep(list(Ainfo,Ainfo )))))
+      GP = t(as.matrix(expand.grid(rep(list(Pinfo,Pinfo )))))
+      keep = GP[2,]>=GP[1,] #unique genotypes
+      G <- G[,keep]  #store genotypes
+      G <- paste0(G[1,],paste0("/",G[2,]))
+      GP <- GP[,keep]  #store genotypes
+      GP <- GP[1,]*GP[2,]
+      newRow <- rep(NA,nrow(subD)) 
+      for(j in 1:length(GP)) { #for each genotype
+       rowind <- which(subD[,i]==GP[j]) #samples with this genotype
+       if(length(rowind)==0) next
+       newRow[rowind] <- G[j]
+      } #end for each allele
+      outD <- cbind(outD,newRow) #extend
+     }
+     colnames(outD) <- c("Reference",dblocs)
+     if(nrow(outD)>10000) {
+      #gmessage(message="Database contained more than 10000 samples.\n Showing first 10000 samples only!")
+      print("Database contained more than 10000 samples. Showing first 10000 samples only!")
+      outD <- outD[1:10000,]
+     }
+     dbwin <- gwindow(paste0("References in imported database ",dsel), visible=FALSE,height=mwH)
+     gtable(outD,container=dbwin,multiple=TRUE) #create table
+     visible(dbwin) <- TRUE
+    } #end for each databases
+   } #end if db -case
  }  #end viewdata
 
  ###############
@@ -722,31 +806,51 @@ calcPvalue = function(LRRMlist,lrobs) {
    kitList <- get("kits",envir=mmTK)
    tab2a[2,1][] <- names(kitList)
   }
- )
- #kit-selection
- tab2a[2,1] <- gcombobox(items="", width=100, selected = 0, editable = FALSE, container = tab2a, handler=
+ ) 
+ tab2a[2,1] <- gcombobox(items="", width=100, selected =0 , editable = FALSE, container = tab2a, handler=
     function(h,...) {
-     kitList <- get("kits",envir=mmTK)
-     print(names(kitList[[svalue(tab2a[2,1])]]))
-     tab2a[2,2][] <- names(kitList[[svalue(tab2a[2,1])]])
+     if(!is.null(get("dbData",envir=mmTK))) {
+      print("You can not change selected kit after loading a database!") 
+     } else {
+      kitList <- get("kits",envir=mmTK)
+      if(!is.null(kitList)) tab2a[2,2][] <- names(kitList[[svalue(tab2a[2,1])]])
+     }
     })
  #population-selection
- tab2a[2,2] <- gcombobox(items="", width=100, selected = 0, editable = FALSE , container = tab2a, handler=
+ tab2a[2,2] <- gcombobox(items="", width=100, selected = 0 , editable = FALSE , container = tab2a, handler=
     function(h,...) {
-     kitList <- get("kits",envir=mmTK)
-     popList <- kitList[[svalue(tab2a[2,1])]][[svalue(tab2a[2,2])]] #get selected frequencies
-     print(popList)
-     assign("popFreq",popList,envir=mmTK) #assign popFreq get("popFreq",envir=mmTK)
+     if(!is.null(get("dbData",envir=mmTK))) {
+      print("You can not change selected population after loading a database!") 
+     } else {
+      kitList <- get("kits",envir=mmTK)
+      if(!is.null(kitList)) {
+       popList <- kitList[[svalue(tab2a[2,1])]][[svalue(tab2a[2,2])]] #get selected frequencies
+       assign("popFreq",popList,envir=mmTK) #assign popFreq get("popFreq",envir=mmTK)
+       popkitname <- c(svalue(tab2a[2,1]),svalue(tab2a[2,2])) #store selected kit and popnames
+       assign("selPopKitName",popkitname,envir=mmTK) 
+      }
+     }
     })
+#previous stored kit/pop-names:
+ popkitname <- get("selPopKitName",envir=mmTK) 
+ if(!is.null(popkitname)) {
+  tab2a[2,1][] <- popkitname[1]
+  tab2a[2,2][] <- popkitname[2]
+ }
 
  #Select number of samples in popFreq-data
  tab2a[1,3] <-  gbutton(text="Update #Samples",container=tab2a,handler=
   function(h,...) {
-   minFreq <- 5/(2*as.numeric(svalue(tab2a[2,3])))
-   assign("minFreq",minFreq,envir=mmTK) #assign minFrequency. Assuming N=1000 samples
+   freqsize <- as.numeric(svalue(tab2a[2,3])) #updated size
+   assign("freqsize ",freqsize ,envir=mmTK) #assign minFrequency. Assuming N=1000 samples
+   minFreq <- getminFreq(freqsize) #get new min-frequencies
    print(paste("New alleles imputed with minimum frequency",minFreq))
   })
- tab2a[2,3] <-  gedit("1000",container=tab2a,width=8) #default is 1000
+
+ defsize = 1000
+ freqSize <- get("freqSize",envir=mmTK) #get assigned minFrequency
+ if(!is.null(freqSize)) defsize <- freqSize #size previously stored
+ tab2a[2,3] <-  gedit(defsize,container=tab2a,width=8) #default is 1000
 
  #view popFreq-data in a new window
  tab2a[1,4] <-  gbutton(text="View frequencies",container=tab2a,handler=
@@ -775,20 +879,22 @@ calcPvalue = function(LRRMlist,lrobs) {
    }
   })
 
+ 
+
  #Choose box and import button
  tab2b[1,1] = gbutton(text="Import evidence",container=tab2b,handler=f_importprof,action="mix")
  tab2b[2,1] = gcheckboxgroup(items="", container = tab2b)
- tab2b[2,1][] <- numeric()
+ tab2b[2,1][] = restoreCheckbox("mix")
 
  #Choose box and import button
  tab2b[1,2] = gbutton(text="Import reference",container=tab2b,handler=f_importprof,action="ref")
  tab2b[2,2] = gcheckboxgroup(items="", container = tab2b)
- tab2b[2,2][] <- numeric()
+ tab2b[2,2][] = restoreCheckbox("ref")
 
  #Choose box and import button
  tab2b[1,3] = gbutton(text="Import database",container=tab2b,handler=f_importprof,action="db")
  tab2b[2,3] = gcheckboxgroup(items="", container = tab2b)
- tab2b[2,3][] <- numeric()
+ tab2b[2,3][] = restoreCheckbox("db")
 
  #view data:
  tab2b[3,1] = gbutton(text="View evidence",container=tab2b,handler=f_viewdata,action="mix")
@@ -990,10 +1096,9 @@ calcPvalue = function(LRRMlist,lrobs) {
 ##############################################################
 ###############Tab 4: Deconvolution results:##################
 ##############################################################
- tab4a = glayout(spacing=1,container=tab4,expand=TRUE) #table layout
- tab4b = glayout(spacing=1,container=tab4,expand=TRUE) #table of results
- tab4c = glayout(spacing=1,container=tab4,expand=TRUE) #storing result
 
+
+ tab4tmp <- glayout(spacing=30,container=tab4)
 
  f_savetableDC = function(h,...) {
    deconvlist<-get("deconvlist",envir=mmTK) #load results from environment
@@ -1001,37 +1106,32 @@ calcPvalue = function(LRRMlist,lrobs) {
     tkmessageBox(message="There is no deconvolution results available.")
     return
    }
-   tabfile = gfile(text="Save table",type="save")
-   if(!is.na(tabfile)) {
-    if(h$action=="Layout1") tab <- deconvlist$result1
-    if(h$action=="Layout2") tab <- deconvlist$result2
-    write.table(tab,file=tabfile,quote=FALSE,sep="\t",row.names=FALSE) #load environment.
-    print(paste("Result table saved in ",tabfile,sep=""))
-   }
+   if(h$action=="Layout1") tab <- deconvlist$result1
+   if(h$action=="Layout2") tab <- deconvlist$result2
+   saveTable(tab, "txt") #save 
   }
 
  refreshTab4 = function(layout="Layout2") {
+   layouts <- c("Layout1","Layout2")
    deconvlist<-get("deconvlist",envir=mmTK) #load results from environment
-   if(!is.null(deconvlist)) {
-    if(layout=="Layout1") restab <- deconvlist$result1
-    if(layout=="Layout2") restab <- deconvlist$result2
-    #gtable(restab,chosencol=1,container=TRUE)
-    #tab4b[1,1] <- gtable(restab,container=tab4b,multiple=TRUE,expand=TRUE)
-    tab4b[1,1] <- gtable(restab,container=tab4b,multiple=TRUE,width=mwW,height=mwH-2*mwH/3,do.autoscroll=TRUE,noRowsVisible=TRUE) #add to frame
-   }
+   if(is.null(deconvlist)) return(1)
+   if(layout=="Layout1") restab <- deconvlist$result1
+   if(layout=="Layout2") restab <- deconvlist$result2
+   tab4a = glayout(spacing=1,container=(tab4tmp[1,1] <-glayout(spacing=0,container=tab4tmp)),expand=TRUE) #table layout
+   tab4b = glayout(spacing=1,container=(tab4tmp[2,1] <-glayout(spacing=0,container=tab4tmp)),expand=TRUE) #table of results
+   tab4c = glayout(spacing=1,container=(tab4tmp[3,1] <-glayout(spacing=0,container=tab4tmp)),expand=TRUE) #storing result
+
+   tab4b[1,1] <- gtable(restab,container=tab4b,multiple=TRUE,width=mwW,height=mwH-2*mwH/3,do.autoscroll=TRUE,noRowsVisible=TRUE) #add to frame
    #create table in tab4a
    tab4b[1,1] <- glabel(text="",container=tab4b)
- #  tab4b[3,2] <- gradio(items=layouts,container=tab4b,selected=grep(layout,layouts,fixed=TRUE))
-#   tab4b[4,2] <- gbutton(text="Update table",container=tab4b, handler=function(h,...) { refreshTab4( svalue(tab4b[3,2])  )}) #refresh table with selected layout
    tab4c[1,1] <- glabel(text="",container=tab4c)
    tab4c[2,1] <- glabel(text="             ",container=tab4c)
    tab4c[2,2] <- gbutton(text="Save table",container=tab4c,handler=f_savetableDC,action=svalue(tab4a[1,2]))  
+
+   tab4a[1,1] <- glabel(text="Table layout:",container=tab4a)
+   tab4a[1,2] <- gradio(items=layouts,container=tab4a,horisontal=TRUE, handler=function(h,...) { refreshTab4( svalue(tab4a[1,2])  )})
  }
-
- layouts <- c("Layout1","Layout2")
- tab4a[1,1] <- glabel(text="Table layout:",container=tab4a)
- tab4a[1,2] <- gradio(items=layouts,container=tab4a,horisontal=TRUE, handler=function(h,...) { refreshTab4( svalue(tab4a[1,2])  )})
-
+ refreshTab4()
 
 ##############################################################
 ###############Tab 5: LR-calculation setup:###################
@@ -1083,6 +1183,7 @@ calcPvalue = function(LRRMlist,lrobs) {
     LRopt$DIprob <- as.numeric(svalue(tab5a[12+nM+2*nR,2]))
     LRopt$theta <- as.numeric(svalue(tab5a[13+nM+2*nR,2]))
     LRopt$Qcalc <- svalue(tab5a[14+nM+2*nR,1]) #Qassignation
+#    print(LRopt)
     return(LRopt)
    }
 
@@ -1093,8 +1194,9 @@ calcPvalue = function(LRRMlist,lrobs) {
    #LRopt is first a object from LRoption-function
    #if doLR is FALSE, the LRopt-object is returned without LR-calculations
    require(forensim) #this calculation requires the forensim package
+#   LRopt<- get("LRopt",envir=mmTK)  #get imported population frequencies
    popFreq <- get("popFreq",envir=mmTK)  #get imported population frequencies
-   minFreq <- get("minFreq",envir=mmTK) #get assigned minFrequency
+   minFreq <- getminFreq(get("freqSize",envir=mmTK)) #get assigned minFrequency
    LRfit <- list() #store organized data
 
    #organize data:
@@ -1129,7 +1231,7 @@ calcPvalue = function(LRRMlist,lrobs) {
       evidList[[nm]] <- LRopt$mixData[[nm]]$adata[[evidlocind]]
      } 
      if(length(evidA)==0) { evidA <- tmpA #add new
-     } else { evidA <- c(evidA,0,tmpA) } #add to existing
+     } else { evidA <- c(evidA,0,tmpA) } #add to existing: REQUIRED IN likEvid()
     }
   
     #get checked references 
@@ -1164,6 +1266,11 @@ calcPvalue = function(LRRMlist,lrobs) {
      }
     }  #END of data organization
     if(length(hdnames)>0) colnames(refHd) <- hdnames
+
+#print(ln)
+#print(evidA)
+#print(refHp)
+#print(refHd)
 
     #frequency-handling:
     allA <- unique(c(evidA,refHp,refHd)) 
@@ -1214,24 +1321,23 @@ calcPvalue = function(LRRMlist,lrobs) {
 
    assign("popFreq",popFreq,envir=mmTK)  #assigning updated popFreq
    if(!doLR) return(LRfit)
-
+   LRopt$LRfit <- LRfit
+   assign("LRopt",LRopt,envir=mmTK) #store selected LR-model
    if(nPrC==1 & nPrD==1) { #if ordinary LR-calculation
-    LRopt$LRfit <- LRfit
-    assign("LRopt",LRopt,envir=mmTK) #store
-    refreshTab6(LRopt,acc=5) #refresh to result-table 
+    refreshTab6() #refresh to result-table 
    } else { #if precalculation
-    LRopt$preLRfit <- LRfit
-    assign("LRopt",LRopt,envir=mmTK)
     #plot LR as a function of prD and prC:
-    locs <- names(LRopt$preLRfit)
+    locs <- names(LRfit)
     jointlr = 1
     for(loc in locs) {
-     jointlr <- jointlr*LRopt$preLRfit[[loc]]$LR
+     jointlr <- jointlr*LRfit[[loc]]$LR
     }
     if(ncol(jointlr)==1) { #if only drop-out calc:
      pdx <- as.numeric(rownames(jointlr))
      plot(pdx,log10(jointlr),xlab="Pr_D",ylab="log_10(LR(D))",main="Sensitivity plot")
      lines(spline(pdx,log10(jointlr),n=100))
+    } else {
+     print("multiple drop-in probabilities not implemented yet!")
     }
    } #end if precalc
   } #end LR-calculation function
@@ -1431,18 +1537,21 @@ calcPvalue = function(LRRMlist,lrobs) {
     tkmessageBox(message="There is no LR-results available.")
     return
    }
-   tabfile = gfile(text="Save table",type="save")
-   #store info in file 
-   if(!is.na(tabfile)) {
-    tab <- LRopt$LRtab
-    tab <- rbind(tab,LRopt$joint)
-    write.table(tab,file=tabfile,quote=FALSE,sep="\t",row.names=TRUE) #load environment
-    print(paste("Result table saved in ",tabfile,sep=""))
-   }
+   tab <- LRopt$LRtab
+   tab <- rbind(tab,LRopt$joint)
+   saveTable(tab,"txt")
  }
 
-  refreshTab6 = function(LRopt,acc) { 
+  refreshTab6 = function(acc=5) { 
+   LRopt<-get("LRopt",envir=mmTK) #load weight-of-evidence results from environment
+   if(is.null(LRopt) || is.null(LRopt$LRfit)) return(1);
    #acc is number of rounding
+
+ tab6tmp <- glayout(spacing=30,container=tab6)
+
+  tab6a = glayout(spacing=0,container=(tab6tmp[1,1] <-glayout(spacing=0,container=tab6tmp))) 
+
+
    tab6a = glayout(spacing=0,container=(tab6tmp[1,1] <-glayout(spacing=0,container=tab6tmp))) 
    tab6b = glayout(spacing=0,container=(tab6tmp[1,2] <-glayout(spacing=0,container=tab6tmp))) 
    tab6c = glayout(spacing=0,container=(tab6tmp[2,1] <-glayout(spacing=0,container=tab6tmp))) 
@@ -1469,7 +1578,7 @@ calcPvalue = function(LRRMlist,lrobs) {
    rr <- function(x) signif(x,acc) #user may specify
    LRtab <-  cbind(rownames(LRopt$LRtab),rr(LRopt$LRtab)) #format table for outprint
    colnames(LRtab) <- c("loci","Hp","Hd","LR")
-   tab6b[1:nrow(LRtab),1:4] <- gtable(LRtab,container=tab6b,multiple=FALSE,height=min(nL*22,500)) #plot LR-results
+   tab6b[1:nrow(LRtab),1:4] <- gtable(LRtab,container=tab6b,multiple=FALSE,height=min(nL*24,500)) #plot LR-results
    tab6b[nrow(LRtab)+1,2] <- glabel("",container=tab6b)
    tab6b[nrow(LRtab)+2,2] <- glabel("Hp",container=tab6b)
    tab6b[nrow(LRtab)+2,3] <- glabel("Hd",container=tab6b)
@@ -1484,52 +1593,15 @@ calcPvalue = function(LRRMlist,lrobs) {
    tab6b[nrow(LRtab)+4,3] <- glabel(rr(LRopt$joint[2,2]),container=tab6b)
    tab6b[nrow(LRtab)+4,4] <- glabel(rr(LRopt$joint[2,3]),container=tab6b)
 
-   #print model:
-   nM <- length(LRopt$Evidsel)
-   nonHdcon <- LRopt$Hp[!LRopt$Hp%in%LRopt$Hd] #get possible tippets
-   leftHp <- LRopt$Hp[LRopt$Hp%in%LRopt$Hd] #get possible tippets
-   nNotHd <- length(nonHdcon) #number of possible tippets
-   nHp <- length(LRopt$Hp)
-   nleftHp <- length(leftHp)#nHp-nNotHd #non-tippets
-   nHd <- length(LRopt$Hd)
-   tab6a[1,1] <- glabel(text="Evidence(s):",container=tab6a)
-   for(nm in 1:nM) {
-    tab6a[1+nm,1] <- glabel(text=names(LRopt$Evidsel)[nm],container=tab6a)
-   }
-   tab6a[2+nM,1] <- glabel(text="",container=tab6a) #space
-   tab6a[3+nM,1] <- glabel(text="Contributor(s) under Hp:",container=tab6a)
-   if(nNotHd>0) {
-     tab6a[4+nM,1] <- gradio(items=nonHdcon,container=tab6a,checked=FALSE)
-   }
-   if(nleftHp>0) {
-     tab6a[5+nM,1] <- gradio(items=leftHp,container=tab6a,checked=FALSE)
-     enabled(tab6a[5+nM,1]) <- FALSE
-  }
-   tab6a[6+nM,1] <- glabel(text="",container=tab6a) #space
-   tab6a[7+nM,1] <- glabel(text="Contributor(s) under Hd:",container=tab6a)
-   if(nHd>0) {
-     tab6a[8+nM,1] <- gradio(items=LRopt$Hd,container=tab6a,checked=FALSE)
-     enabled(tab6a[8+nM,1]) <- FALSE
-   }
-   tab6a[9+nM,1] <- glabel(text="",container=tab6a) #space
-   tab6a[10+nM,1] <- glabel(text="",container=tab6a) #space
-  
-   #Parameter selection:
-   tab6a[11+nM,1] <- glabel(text="Parameters:",container=tab6a)
-   tab6a[12+nM,1] <- glabel(text=paste("#unknowns (Hp):",LRopt$uHp),container=tab6a)
-   tab6a[13+nM,1] <- glabel(text=paste("#unknowns (Hd):",LRopt$uHd),container=tab6a)
-   tab6a[14+nM,1] <- glabel(text=paste("Drop-out prob: ",LRopt$DOprob),container=tab6a)
-   tab6a[15+nM,1] <- glabel(text=paste("Drop-in prob: ",LRopt$DIprob),container=tab6a)
-   tab6a[16+nM,1] <- glabel(text=paste("Theta:",LRopt$theta),container=tab6a)
-   tab6a[17+nM,1] <- glabel(text=paste("Q-assignation:",LRopt$Qcalc),container=tab6a)
+   printModel(LRopt,guitab=tab6a) #print LR-model
 
    #options:
    tab6c[1,1] <- glabel("Tippet:",container=tab6c)
    tab6c[2,1] <- gbutton(text="RM precalc",container=tab6c,handler=
     function(x) {
-     LRopt$LRRMlist <- getLRRMlist(LRopt,svalue(tab6a[4+nM,1]))
+     LRopt$LRRMlist <- getLRRMlist(LRopt,svalue(tab6a[4+length(LRopt$Evidsel),1]))
      assign("LRopt",LRopt,envir=mmTK) #store LRRM-info
-     refreshTab6(LRopt,acc=as.numeric(svalue(tab6d[2,2]))) #refresh tab
+     refreshTab6(acc=as.numeric(svalue(tab6d[2,2]))) #refresh tab
     })
    tab6c[2,2] <- gbutton(text="Pval RM",container=tab6c,handler=
     function(x) {
@@ -1580,23 +1652,17 @@ calcPvalue = function(LRRMlist,lrobs) {
    tab6d[2,2] <- gedit(paste(acc),container=tab6d,width=3)
    tab6d[3,1] <- gbutton(text="Refresh table",container=tab6d,handler=
     function(h,...) {
-    refreshTab6(LRopt,acc=as.numeric(svalue(tab6d[2,2])))
+    refreshTab6(acc=as.numeric(svalue(tab6d[2,2])))
    } )  
    tab6d[3,2] <- gbutton(text="Save table",container=tab6d,handler=f_savetableLR)  
   }
-
-
-
-
+  refreshTab6()
 
 ##############################################################
 ###############Tab 7: Database search:########################
 ##############################################################
 
-tab7a = glayout(spacing=1,container=tab7,expand=TRUE) #table layout (sorted)
-tab7b = glayout(spacing=1,container=tab7,expand=TRUE) #table of results
-tab7c = glayout(spacing=1,container=tab7,expand=TRUE) #storing result
-
+  tab7tmp <- glayout(spacing=30,container=tab7) #grid-layout
 
  f_savetableDS = function(h,...) {
    DBsearch <-get("DBsearch",envir=mmTK) #load results from environment
@@ -1604,37 +1670,43 @@ tab7c = glayout(spacing=1,container=tab7,expand=TRUE) #storing result
     tkmessageBox(message="There is no database search results available.")
     return
    }
+   sep="txt"
    tabfile = gfile(text="Save table",type="save")
    if(!is.na(tabfile)) {
+    if(length(unlist(strsplit(tabfile,"\\.")))==1) tabfile = paste0(tabfile,".",sep)
     if(h$action=="LR") ord <- order(as.numeric(DBsearch[,2]),decreasing=TRUE) 
     if(h$action=="MAC") ord <- order(as.numeric(DBsearch[,3]),decreasing=TRUE) 
     write.table(DBsearch[ord,],file=tabfile,quote=FALSE,sep="\t",row.names=FALSE) #load environment
-    print(paste("Result table saved in ",tabfile,sep=""))
+    print(paste("Full ranked table saved in ",tabfile,sep=""))
    }
   }
 
  refreshTab7 = function(layout="LR") {
-   DBsearch <-get("DBsearch",envir=mmTK) #load results from environment
-   if(!is.null(DBsearch )) {
-    if(layout=="LR") ord <- order(as.numeric(DBsearch[,2]),decreasing=TRUE) 
-    if(layout=="MAC") ord <- order(as.numeric(DBsearch[,3]),decreasing=TRUE) 
-    if(length(ord)>10000) {
-     gmessage(message="Database contained more than 10000 samples.\n Showing first 10000 ranked samples only!")
-     ord <- ord[1:10000] #only first 10000 shown
-    }
-    tab7b[1,1] <- gtable(DBsearch[ord,] ,container=tab7b,multiple=TRUE,height=mwH-2*mwH/3,do.autoscroll=TRUE,noRowsVisible=TRUE) #add to frame
+   DBsearch <- get("DBsearch",envir=mmTK) #load results from environment
+   LRoptDB <- get("LRoptDB",envir=mmTK)
+   if(is.null(DBsearch) || is.null(LRoptDB) ) return(1);
+   tab7a = glayout(spacing=1,container=(tab7tmp[1,1] <-glayout(spacing=0,container=tab7tmp)),expand=TRUE) #table layout (sorted)
+   tab7b = glayout(spacing=1,container=(tab7tmp[1,2] <-glayout(spacing=0,container=tab7tmp)),expand=TRUE) #storing result
+   tab7c = glayout(spacing=1,container=(tab7tmp[2,1] <-glayout(spacing=0,container=tab7tmp)),expand=TRUE) #table of model
+   tab7d = glayout(spacing=1,container=(tab7tmp[2,2] <-glayout(spacing=0,container=tab7tmp)),expand=TRUE) #table of results
+
+   layouts <- c("LR","MAC")
+   tab7a[1,1] <- glabel(text="Table sort:",container=tab7a)
+   tab7a[1,2] <- gradio(items=layouts,selected=grep(layout,layouts,fixed=TRUE),container=tab7a,horisontal=TRUE, handler=function(h,...) { refreshTab7( svalue(tab7a[1,2])  )})
+   tab7b[1,1] <- glabel(text="",container=tab7c)
+   tab7b[2,1] <- glabel(text="             ",container=tab7b)
+   tab7b[2,2] <- gbutton(text="Save table",container=tab7b,handler=f_savetableDS,action=svalue(tab7a[1,2]))  
+   printModel(LRoptDB,guitab=tab7c) #print LR-model
+
+   if(layout=="LR") ord <- order(as.numeric(DBsearch[,2]),decreasing=TRUE) 
+   if(layout=="MAC") ord <- order(as.numeric(DBsearch[,3]),decreasing=TRUE) 
+   if(length(ord)>10000) {
+    print("Database contained more than 10000 samples.\n Showing first 10000 ranked samples only!")
+    ord <- ord[1:10000] #only first 10000 shown
    }
-   #create table in tab4a
-   tab7b[1,1] <- glabel(text="",container=tab7b)
-   tab7c[1,1] <- glabel(text="",container=tab7c)
-   tab7c[2,1] <- glabel(text="             ",container=tab7c)
-   tab7c[2,2] <- gbutton(text="Save table",container=tab7c,handler=f_savetableDS,action=svalue(tab7a[1,2]))  
+   tab7d[1,1] <- gtable(DBsearch[ord,] ,container=tab7d,multiple=TRUE,height=mwH-2*mwH/3,do.autoscroll=TRUE,noRowsVisible=TRUE) #add to frame
  }
-
- layouts <- c("LR","MAC")
- tab7a[1,1] <- glabel(text="Table sort:",container=tab7a)
- tab7a[1,2] <- gradio(items=layouts,container=tab7a,horisontal=TRUE, handler=function(h,...) { refreshTab7( svalue(tab7a[1,2])  )})
-
+ refreshTab7()
 
  visible(mainwin) <- TRUE
 

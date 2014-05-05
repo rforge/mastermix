@@ -2,7 +2,10 @@
 \alias{mastermixTK}
 \title{mastermixTK}
 \usage{
-mastermixTK()
+mastermixTK(envirfile=NULL)
+}
+\arguments{
+  \item{envirfile}{A optional file to previous saved project of the program}
 }
 \description{
 mastermixTK is a GUI for the function mastermix for
@@ -21,6 +24,8 @@ for allele height information (if any)
 \author{
 Oyvind Bleka <Oyvind.Bleka.at.fhi.no>
 }
+
+\keyword{database search,}
 \keyword{deconvolution,}
-\keyword{optimization}
+\keyword{Weight of evidence}
 
