@@ -18,7 +18,7 @@
 #' @description mastermixTK is a GUI for the function mastermix for performing linear deconvolution procedure of STR DNA mixtures.
 #' @export
 #' @usage mastermixTK(envirfile=NULL)
-#' @details The function is a graphical layer for the function mastermix. See ?mastermix for more information.
+#' @details The function is a graphical layeFr for the function mastermix. See ?mastermix for more information.
 #' 
 #' The structure of profiles is: Data[['samplename']]$adata[['locusname']] for allele information and Data[['samplename']]$hdata[['locusname']] for allele height information (if any)
 #' 
@@ -605,7 +605,7 @@ calcPvalue = function(LRRMlist,lrobs) {
  f_importprof = function(h,...) {
   type=h$action #get type of profile
 #  proffile = gfile(text=paste("Open ",type,"-file",sep=""),type="open",filter=list("text"=list(patterns=list("*.txt","*.csv","*.tab"))))
-  proffile = gfile(text=paste("Open ",type,"-file",sep=""),type="open")
+  proffile = gfile(text=paste("Open ",type,"-file",sep=""),type="open",filter=list("text"=list(patterns=list("*.txt","*.csv","*.tab")),"all"=list(patterns=list("*."))))
   if(!is.na(proffile)) {
    Data = tableReader(proffile) #load profile
    print("Raw fil import")

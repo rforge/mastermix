@@ -1,7 +1,7 @@
 Package: mastermix
 Type: Package
 Title: Procedure for deconvolving, weight-evidence and database search using STR DNA mixtures
-Version: 1.5.4
+Version: 1.5.5
 Date: 2014-05-05
 Author: Oyvind Bleka <Oyvind.bleka@fhi.no>
 Maintainer: Oyvind Bleka <Oyvind.bleka@fhi.no>
