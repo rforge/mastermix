@@ -566,7 +566,7 @@ calcPvalue = function(LRRMlist,lrobs) {
   #load/save profiles
   f_openprof = function(h,...) {
    # proffile = gfile(text=paste("Open profile",sep=""),type="open")
-    proffile = gfile(text="Open profile",type="open",filter=list("text"=list(patterns=list("*.txt","*.csv","*.tab"))))
+    proffile = gfile(text="Open profile",type="open",filter=list("text"=list(patterns=list("*.txt","*.csv","*.tab")),"all"=list(patterns=list("*"))))
     if(!is.na(proffile)) {
      Data = tableReader(proffile) #load profile
      print(Data)
@@ -613,10 +613,10 @@ calcPvalue = function(LRRMlist,lrobs) {
  f_importprof = function(h,...) {
   type=h$action #get type of profile
 #  proffile = gfile(text=paste("Open ",type,"-file",sep=""),type="open",filter=list("text"=list(patterns=list("*.txt","*.csv","*.tab"))))
-  proffile = gfile(text=paste("Open ",type,"-file",sep=""),type="open",filter=list("text"=list(patterns=list("*.txt","*.csv","*.tab")),"all"=list(patterns=list("*."))))
+  proffile = gfile(text=paste("Open ",type,"-file",sep=""),type="open",filter=list("text"=list(patterns=list("*.txt","*.csv","*.tab")),"all"=list(patterns=list("*"))))
   if(!is.na(proffile)) {
    Data = tableReader(proffile) #load profile
-   print("Raw fil import")
+   print("Raw fil import:")
    print(Data[1:min(nrow(Data),100),]) #print raw-input data
 
 ###################
