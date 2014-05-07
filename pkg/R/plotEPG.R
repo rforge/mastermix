@@ -11,7 +11,7 @@
 #wrapper function for plotting mixture data as epg profile
 #Using Oskars functions. Put generateEPG here
 plotEPG <- function(Data,kitname,sname="") {
- #mixData is list with allele and height data. Only one sample!
+ #Data is list with allele and height data. Only one sample!
  #for selected sample:
 
 
@@ -585,10 +585,22 @@ generateEPG<-function(alleleList, peakHeightList, dyeVector=NULL, locusVector=NU
   gmessage(message="There is no allele data in sample!",title="Error",icon="error")
  } else {
    #fix order prior:
-   kit <- getKit(kitname, showMessages=TRUE)
-   if (!is.na(kit[[1]])) {
-	Data$adata <- Data$adata[toupper(kit$locus)]
-	Data$hdata <- Data$hdata[toupper(kit$locus)]
+   kit <- getKit(kitname, showMessages=FALSE)
+   if (!is.na(kit[[1]])) { #the kit was found.
+      sname <- paste0(kitname," - ",sname)
+      kitlocs <- toupper(kit$locus)
+      AMELname <- kitlocs[grep("AM",kitlocs,fixed=TRUE)] #get amel-name
+      if(!is.null(AMELname)) { #change amel-name in dataset if AMEL was found
+       names(Data$adata)[grep("AM",toupper(names(Data$adata)),fixed=TRUE)] <- AMELname
+       names(Data$hdata)[grep("AM",toupper(names(Data$hdata)),fixed=TRUE)] <- AMELname
+      }
+      #Insert missing loci:
+      missloc <- kitlocs[!kitlocs%in%names(Data$adata)] #get missing loci
+      for(loc in missloc) 	Data$adata[loc] = ""
+      missloc <- kitlocs[!kitlocs%in%names(Data$hdata)] #get missing loci
+      for(loc in missloc) 	Data$hdata[loc] = 0
+	Data$adata <- Data$adata[kitlocs] #get correct order
+	Data$hdata <- Data$hdata[kitlocs] #get correct order
    }
   generateEPG(typingKit=kitname,alleleList=Data$adata,peakHeightList=Data$hdata, locusVector=names(Data$adata),sampleName=sname, drawBoxPlots=FALSE, drawPeaks=TRUE)
  }

@@ -126,6 +126,14 @@ mastermixTK = function(envirfile=NULL) {
 ##HELPFUNCTIONS##
 #################
 
+ #Function which takes rownames and adds to first column
+ addRownameTable = function(tab) {
+  tmp <- colnames(tab)
+  tab <- cbind(rownames(tab),tab)
+  colnames(tab) <- c("X",tmp)
+  return(tab)
+ }
+
  #Robust function for reading tables:
  tableReader=function(filename) {
   tab <- read.table(filename,header=TRUE,sep="\t",stringsAsFactors=FALSE)
@@ -736,6 +744,7 @@ calcPvalue = function(LRRMlist,lrobs) {
       #if(length(grep("AMEL",loc,fixed=TRUE))>0) next
 #      subD$adata[[loc]] <- as.numeric(subD$adata[[loc]])
 #     }
+     if(msel!=mixSel[1]) dev.new() #create new plot for next EPG
      plotEPG(subD,kit,msel) #plot epg's
     } 
    }
@@ -1108,7 +1117,7 @@ calcPvalue = function(LRRMlist,lrobs) {
    }
    if(h$action=="Layout1") tab <- deconvlist$result1
    if(h$action=="Layout2") tab <- deconvlist$result2
-   saveTable(tab, "txt") #save 
+   saveTable(addRownameTable(tab), "txt") #save 
   }
 
  refreshTab4 = function(layout="Layout2") {
@@ -1121,15 +1130,15 @@ calcPvalue = function(LRRMlist,lrobs) {
    tab4b = glayout(spacing=1,container=(tab4tmp[2,1] <-glayout(spacing=0,container=tab4tmp)),expand=TRUE) #table of results
    tab4c = glayout(spacing=1,container=(tab4tmp[3,1] <-glayout(spacing=0,container=tab4tmp)),expand=TRUE) #storing result
 
-   tab4b[1,1] <- gtable(restab,container=tab4b,multiple=TRUE,width=mwW,height=mwH-2*mwH/3,do.autoscroll=TRUE,noRowsVisible=TRUE) #add to frame
+   tab4b[1,1] <- gtable(addRownameTable(restab),container=tab4b,multiple=TRUE,width=mwW,height=mwH-2*mwH/3,do.autoscroll=TRUE,noRowsVisible=TRUE) #add to frame
    #create table in tab4a
    tab4b[1,1] <- glabel(text="",container=tab4b)
    tab4c[1,1] <- glabel(text="",container=tab4c)
    tab4c[2,1] <- glabel(text="             ",container=tab4c)
+   tab4a[1,1] <- glabel(text="Table layout:",container=tab4a)
+   tab4a[1,2] <- gradio(items=layouts,selected=which(layout==layouts),container=tab4a,horisontal=TRUE, handler=function(h,...) { refreshTab4( svalue(tab4a[1,2])  )})
    tab4c[2,2] <- gbutton(text="Save table",container=tab4c,handler=f_savetableDC,action=svalue(tab4a[1,2]))  
 
-   tab4a[1,1] <- glabel(text="Table layout:",container=tab4a)
-   tab4a[1,2] <- gradio(items=layouts,container=tab4a,horisontal=TRUE, handler=function(h,...) { refreshTab4( svalue(tab4a[1,2])  )})
  }
  refreshTab4()
 
@@ -1539,19 +1548,13 @@ calcPvalue = function(LRRMlist,lrobs) {
    }
    tab <- LRopt$LRtab
    tab <- rbind(tab,LRopt$joint)
-   saveTable(tab,"txt")
+   saveTable(addRownameTable(tab),"txt")
  }
 
   refreshTab6 = function(acc=5) { 
    LRopt<-get("LRopt",envir=mmTK) #load weight-of-evidence results from environment
    if(is.null(LRopt) || is.null(LRopt$LRfit)) return(1);
    #acc is number of rounding
-
- tab6tmp <- glayout(spacing=30,container=tab6)
-
-  tab6a = glayout(spacing=0,container=(tab6tmp[1,1] <-glayout(spacing=0,container=tab6tmp))) 
-
-
    tab6a = glayout(spacing=0,container=(tab6tmp[1,1] <-glayout(spacing=0,container=tab6tmp))) 
    tab6b = glayout(spacing=0,container=(tab6tmp[1,2] <-glayout(spacing=0,container=tab6tmp))) 
    tab6c = glayout(spacing=0,container=(tab6tmp[2,1] <-glayout(spacing=0,container=tab6tmp))) 
@@ -1578,7 +1581,7 @@ calcPvalue = function(LRRMlist,lrobs) {
    rr <- function(x) signif(x,acc) #user may specify
    LRtab <-  cbind(rownames(LRopt$LRtab),rr(LRopt$LRtab)) #format table for outprint
    colnames(LRtab) <- c("loci","Hp","Hd","LR")
-   tab6b[1:nrow(LRtab),1:4] <- gtable(LRtab,container=tab6b,multiple=FALSE,height=min(nL*24,500)) #plot LR-results
+   tab6b[1:nrow(LRtab),1:4] <- gtable(LRtab,container=tab6b,multiple=FALSE,height=min(nL*22,500)) #plot LR-results
    tab6b[nrow(LRtab)+1,2] <- glabel("",container=tab6b)
    tab6b[nrow(LRtab)+2,2] <- glabel("Hp",container=tab6b)
    tab6b[nrow(LRtab)+2,3] <- glabel("Hd",container=tab6b)

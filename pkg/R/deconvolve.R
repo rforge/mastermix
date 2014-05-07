@@ -706,7 +706,7 @@ deconvolve = function(nC,mixData,refData=NULL,condOrder=NULL,locsel_Mix=NULL,loc
 
  #add extra result info:
  deconvlist$locinames <- names(mixData2$adata) #store locinames
- deconvlist$result1 = getCombs(deconvlist)
+ deconvlist$result1 = getCombs(deconvlist) #get results
  deconvlist$result2 = getCombs2(deconvlist)
  deconvlist$data <- list(mixData=mixData2,refData=refData2,locsel_Mix=locsel_Mix,locsel_Ref=locsel_Ref)
  deconvlist$options <- list(condOrder = condOrder,nC=nC,eps=eps)
