@@ -20,7 +20,8 @@ calcDOdistr = function(LRopt,sample,M=1e3,minS=500,hdOnly=FALSE) {
  #import LR-models elements
  prC = LRopt$DIprob #dropout
  pos = ceiling( log(1e-16)/log(prC) )  #want low prob to achieve many dropouts
- prC_vec =  c(1-prC/(1-prC),prC^c(1:pos)) #dropout probabilities
+ if(pos<=0)  prC_vec = 1
+ if(pos>0) prC_vec =  c(1-prC/(1-prC),prC^c(1:pos)) #dropout probabilities
  if(!hdOnly) uHp = LRopt$uHp 
  uHd = LRopt$uHd
  locs <- names(LRopt$LRfit)

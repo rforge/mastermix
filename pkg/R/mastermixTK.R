@@ -15,14 +15,10 @@
 
 #' @title mastermixTK
 #' @author Oyvind Bleka <Oyvind.Bleka.at.fhi.no>
-#' @description mastermixTK is a GUI for the function mastermix for performing linear deconvolution procedure of STR DNA mixtures.
+#' @description A software to evaluate weight-of-evidence for both qualitative and continuous models for STR DNA mixtures in addition to do deconvolution and database searching. 
 #' @export
 #' @usage mastermixTK(envirfile=NULL)
-#' @details The function is a graphical layeFr for the function mastermix. See ?mastermix for more information.
-#' 
-#' The structure of profiles is: Data[['samplename']]$adata[['locusname']] for allele information and Data[['samplename']]$hdata[['locusname']] for allele height information (if any)
-#' 
-#' @keywords deconvolution, optimization
+#' @details mastermixTK opens the GUI "Mixture Tool" which performs weight-of-evidence for both qualitative and continuous models for STR DNA mixtures. It also provides extensive tools for deconvolution and database searching. See ?mastermix for more information.
 
 
  #setwd("C:/Users/oebl/Dropbox/Forensic/MixtureProj/myDev/examples")
@@ -137,7 +133,8 @@ mastermixTK = function(envirfile=NULL) {
  #Robust function for reading tables:
  tableReader=function(filename) {
   tab <- read.table(filename,header=TRUE,sep="\t",stringsAsFactors=FALSE)
-  if(ncol(tab)==1) tab <- read.table(filename,header=TRUE,sep=",",stringsAsFactors=FALSE)
+  tryCatch( {  if(ncol(tab)==1) tab <- read.table(filename,header=TRUE,sep=",",stringsAsFactors=FALSE) } ,error=function(e) e) 
+  tryCatch( {  if(ncol(tab)==1) tab <- read.table(filename,header=TRUE,sep=";",stringsAsFactors=FALSE) } ,error=function(e) e) 
   if(ncol(tab)==1) tab <- read.table(filename,header=TRUE,sep=";",stringsAsFactors=FALSE)
   return(tab) #need dataframe to keep allele-names correct!!
  }
@@ -200,6 +197,7 @@ mastermixTK = function(envirfile=NULL) {
   cn = colnames(X) #colnames 
   lind = grep("marker",tolower(cn),fixed=TRUE) #locus col-ind
   sind = grep("sample",tolower(cn),fixed=TRUE) #sample col-ind
+  if(length(sind)>1)  sind = sind[grep("name",tolower(cn[sind]),fixed=TRUE)] #use only sample name
   A_ind = grep("allele",tolower(cn),fixed=TRUE) #allele col-ind
   H_ind = grep("height",tolower(cn),fixed=TRUE) #height col-ind
   ln = unique(toupper(X[,lind])) #locus names: Convert to upper case
@@ -468,7 +466,7 @@ calcPvalue = function(LRRMlist,lrobs) {
  
  #Main window:
  spc <- 10
- mainwin <- gwindow(paste("Mixture analysis Tool v",version,sep=""), visible=FALSE, width=mwW,height=mwH)
+ mainwin <- gwindow(paste("Mixture Tool v",version,sep=""), visible=FALSE, width=mwW,height=mwH)
  gmenu(mblst,container=mainwin)
  nb = gnotebook(container=mainwin)
  tab1 = ggroup(horizontal=FALSE,expand=TRUE,spacing=spc,container=nb,label="Create data")

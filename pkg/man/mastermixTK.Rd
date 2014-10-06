@@ -8,18 +8,10 @@ mastermixTK(envirfile=NULL)
   \item{envirfile}{A optional file to previous saved project of the program}
 }
 \description{
-mastermixTK is a GUI for the function mastermix for
-performing linear deconvolution procedure of STR DNA
-mixtures.
+Software to evaluate weight-of-evidence for both qualitative and continuous models for STR DNA mixtures in addition to do deconvolution and database searching. 
 }
 \details{
-The function is a graphical layer for the function
-mastermix. See ?mastermix for more information.
-
-The structure of profiles is:
-Data[['samplename']]$adata[['locusname']] for allele
-information and Data[['samplename']]$hdata[['locusname']]
-for allele height information (if any)
+mastermixTK opens the GUI "Mixture Tool" which performs weight-of-evidence for both qualitative and continuous models for STR DNA mixtures. It also provides extensive tools for deconvolution and database searching. See ?mastermix for more information.
 }
 \author{
 Oyvind Bleka <Oyvind.Bleka.at.fhi.no>
